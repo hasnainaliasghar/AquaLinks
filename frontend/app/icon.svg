@@ -1,0 +1,56 @@
+<!--
+  AquaLens favicon — picked up automatically by Next.js 15 from
+  `app/icon.svg`. This is a static, square distillation of the
+  animated landing-page glyph: orbit ring + satellite + central
+  water drop, drawn on a transparent background so it works in
+  both light and dark browser chrome.
+
+  No animation tags — Safari and Firefox render SVG favicons but
+  treat animations inconsistently, and we want a stable identity
+  in the tab bar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="AquaLinks">
+  <defs>
+    <linearGradient id="favBrand" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="50%"  stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="favPanel" x1="-7.4" y1="0" x2="7.4" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="45%"  stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="favBody" x1="-2.1" y1="-1.6" x2="2.1" y2="1.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#f8fdff" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer orbit ring -->
+  <circle cx="50" cy="50" r="43" stroke="url(#favBrand)" stroke-width="3.4" fill="none"
+          stroke-dasharray="56 38 56 38 56 26" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Inner focus ring -->
+  <circle cx="50" cy="50" r="38" stroke="url(#favBrand)" stroke-width="0.6" fill="none" opacity="0.35"/>
+
+  <!-- Satellite — fixed at the top so it reads as a satellite even at 16px -->
+  <g transform="translate(50 6) rotate(14) scale(2.05)">
+    <rect x="-7.4" y="-1.45" width="4.2" height="2.9" rx="0.65" fill="url(#favPanel)" opacity="0.94"/>
+    <rect x="3.2"  y="-1.45" width="4.2" height="2.9" rx="0.65" fill="url(#favPanel)" opacity="0.94"/>
+    <path d="M-5.9 -1.1 V1.1 M-4.6 -1.1 V1.1 M4.6 -1.1 V1.1 M5.9 -1.1 V1.1"
+          stroke="white" stroke-opacity="0.36" stroke-width="0.26" stroke-linecap="round"/>
+    <rect x="-2.1" y="-1.6" width="4.2" height="3.2" rx="0.95"
+          fill="url(#favBody)" stroke="white" stroke-opacity="0.45" stroke-width="0.32"/>
+    <rect x="-1.1" y="-0.72" width="2.2" height="1.44" rx="0.38" fill="#22d3ee" opacity="0.9"/>
+  </g>
+
+  <!-- Central water drop — the primary brand element -->
+  <g transform="translate(50 50) scale(0.75)">
+    <g transform="translate(-50 -50)">
+      <path d="M50 18 C50 18 28 48 28 64 C28 76.15 37.85 86 50 86 C62.15 86 72 76.15 72 64 C72 48 50 18 50 18 Z"
+            fill="url(#favBrand)"/>
+      <path d="M40 53 Q 35 63 42 73" stroke="white" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.45"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,247 @@
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+
+    --aqua-50: oklch(0.97 0.025 200);
+    --aqua-100: oklch(0.94 0.045 200);
+    --aqua-200: oklch(0.88 0.075 200);
+    --aqua-300: oklch(0.80 0.105 200);
+    --aqua-400: oklch(0.71 0.125 200);
+    --aqua-500: oklch(0.62 0.13 200);
+    --aqua-600: oklch(0.52 0.125 200);
+    --aqua-700: oklch(0.42 0.105 200);
+    --aqua-800: oklch(0.32 0.08 200);
+    --aqua-900: oklch(0.24 0.06 200);
+    --aqua-950: oklch(0.16 0.04 200);
+
+    --risk-low: oklch(0.78 0.10 160);
+    --risk-low-fg: oklch(0.18 0.04 160);
+    --risk-medium: oklch(0.78 0.14 75);
+    --risk-medium-fg: oklch(0.20 0.05 75);
+    --risk-high: oklch(0.62 0.20 30);
+
+    /* Light mode: high-risk text must stay legible on pale red surfaces. */
+    --risk-high-fg: oklch(0.38 0.17 30);
+
+    /* Light theme tokens */
+    --paper: oklch(0.99 0.004 200);
+    --ink: oklch(0.18 0.02 240);
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: oklch(0.985 0.004 220);
+    --card-foreground: var(--ink);
+    --popover: oklch(0.995 0.003 220);
+    --popover-foreground: var(--ink);
+    --primary: var(--aqua-600);
+    --primary-foreground: oklch(0.99 0.01 200);
+    --secondary: oklch(0.95 0.008 240);
+    --secondary-foreground: var(--ink);
+    --muted: oklch(0.965 0.005 240);
+    --muted-foreground: oklch(0.45 0.015 240);
+    --subtle: oklch(0.97 0.006 240);
+    --subtle-foreground: oklch(0.38 0.015 240);
+    --accent: oklch(0.94 0.025 200);
+    --accent-foreground: var(--aqua-700);
+    --destructive: oklch(0.62 0.22 25);
+    --destructive-foreground: oklch(0.99 0.01 25);
+    --border: oklch(0.91 0.006 240);
+    --input: oklch(0.93 0.006 240);
+    --ring: oklch(0.62 0.13 200 / 0.42);
+
+    --surface-0: var(--paper);
+    --surface-1: oklch(0.985 0.004 220);
+    --surface-2: oklch(0.97 0.005 220);
+    --surface-3: oklch(0.95 0.006 220);
+
+    --logo-from: #1d4ed8;
+    --logo-mid: #0e7490;
+    --logo-to: #0f766e;
+    --logo-dot: #0891b2;
+    --logo-glow: 0 2px 10px rgba(15, 118, 110, 0.25);
+
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+      Consolas, "Liberation Mono", monospace;
+    --font-display: var(--font-instrument-serif), "Instrument Serif", Georgia,
+      "Times New Roman", serif;
+  }
+
+  .dark {
+    --paper: oklch(0.10 0.012 240);
+    --ink: oklch(0.97 0.008 240);
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: oklch(0.13 0.012 240);
+    --card-foreground: var(--ink);
+    --popover: oklch(0.14 0.012 240);
+    --popover-foreground: var(--ink);
+    --primary: var(--aqua-400);
+    --primary-foreground: oklch(0.10 0.02 200);
+    --secondary: oklch(0.20 0.012 240);
+    --secondary-foreground: var(--ink);
+    --muted: oklch(0.18 0.012 240);
+    --muted-foreground: oklch(0.66 0.012 240);
+    --subtle: oklch(0.16 0.012 240);
+    --subtle-foreground: oklch(0.72 0.012 240);
+    --accent: oklch(0.24 0.04 200);
+    --accent-foreground: var(--aqua-200);
+    --destructive: oklch(0.66 0.22 25);
+    --destructive-foreground: oklch(0.99 0.01 25);
+    --border: oklch(0.24 0.012 240);
+    --input: oklch(0.22 0.012 240);
+    --ring: oklch(0.71 0.125 200 / 0.5);
+
+    --surface-0: var(--paper);
+    --surface-1: oklch(0.13 0.012 240);
+    --surface-2: oklch(0.16 0.012 240);
+    --surface-3: oklch(0.19 0.012 240);
+
+    /* Dark mode fallback where -fg tokens are used without a dark: override. */
+    --risk-high-fg: oklch(0.92 0.05 30);
+
+    --logo-from: #60a5fa;
+    --logo-mid: #22d3ee;
+    --logo-to: #5eead4;
+    --logo-dot: #22d3ee;
+    --logo-glow: 0 0 18px rgba(34, 211, 238, 0.35);
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    background: var(--aqua-300);
+    color: var(--aqua-950);
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--tw-ring-shadow, 0 0 0 4px var(--ring));
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .glass {
+    background: color-mix(in oklch, var(--background) 70%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  }
+
+  .grid-bg {
+    background-size: 32px 32px;
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
+@layer utilities {
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--muted) 80%, transparent) 0%,
+      color-mix(in oklch, var(--subtle) 60%, transparent) 50%,
+      color-mix(in oklch, var(--muted) 80%, transparent) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+
+  .mask-fade-r {
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+}
+
+/* AquaLens dropped-pin marker (used by the click-to-analyze flow).
+ *
+ * MapLibre sets `transform: translate3d(...)` on the marker root each
+ * frame to position it geographically. We must NOT animate transform on
+ * that root — animations win over inline styles in the cascade and would
+ * clobber MapLibre's positioning. So the drop-in animation lives on an
+ * inner wrapper while the outer .aqualens-pin is left untouched.
+ */
+.aqualens-pin {
+  width: 30px;
+  height: 38px;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.32));
+}
+
+.aqualens-pin__inner {
+  width: 100%;
+  height: 100%;
+  transform-origin: bottom center;
+  animation: aqualens-pin-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.aqualens-pin svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.aqualens-pin .pin-core {
+  transform-origin: 15px 14px;
+  animation: aqualens-pin-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes aqualens-pin-drop {
+  from { transform: translateY(-18px) scale(0.85); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes aqualens-pin-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.8; }
+}
+
+/* MapLibre controls use their built-in white background + dark icons so
+ * they're readable on every basemap and theme. We only round the corners
+ * and lift the shadow a touch to match the rest of the chrome. */
+.maplibregl-ctrl-attrib {
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+}
+
+.maplibregl-ctrl-group {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.18) !important;
+}

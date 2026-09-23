@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" width="720" height="240" role="img" aria-label="AquaLens — deterministic core and Gemini agent workflow">
+  <defs>
+    <linearGradient id="al-brand" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="50%"  stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="al-wordmark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="50%"  stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="al-panel" x1="-7.4" y1="0" x2="7.4" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="45%"  stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="al-body" x1="-2.1" y1="-1.6" x2="2.1" y2="1.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#f8fdff" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.9"/>
+    </linearGradient>
+    <radialGradient id="al-satglow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#22d3ee" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ANIMATED LOGO GLYPH (left) -->
+  <g transform="translate(20 40)">
+    <svg x="0" y="0" width="160" height="160" viewBox="0 0 100 100" overflow="visible">
+
+      <!-- Outer orbit ring — spins every 6s -->
+      <g transform="rotate(0 50 50)">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite"/>
+        <g opacity="0.7">
+          <circle cx="50" cy="50" r="43" stroke="url(#al-brand)" stroke-width="1.7" fill="none"
+                  stroke-dasharray="56 38 56 38 56 26" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <!-- Satellite — orbits every 12s -->
+      <g transform="rotate(0 50 50)">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="12s" repeatCount="indefinite"/>
+        <g transform="translate(50 6) rotate(14) scale(2.05)">
+          <ellipse cx="0" cy="0" rx="8.2" ry="3.9" fill="url(#al-satglow)" opacity="0.26"/>
+          <rect x="-7.4" y="-1.45" width="4.2" height="2.9" rx="0.65" fill="url(#al-panel)" opacity="0.94"/>
+          <rect x="3.2"  y="-1.45" width="4.2" height="2.9" rx="0.65" fill="url(#al-panel)" opacity="0.94"/>
+          <path d="M-5.9 -1.1 V1.1 M-4.6 -1.1 V1.1 M4.6 -1.1 V1.1 M5.9 -1.1 V1.1"
+                stroke="white" stroke-opacity="0.36" stroke-width="0.26" stroke-linecap="round"/>
+          <path d="M-3.2 0 H-2.1 M2.1 0 H3.2" stroke="#22d3ee" stroke-width="0.55" stroke-linecap="round" opacity="0.9"/>
+          <rect x="-2.1" y="-1.6" width="4.2" height="3.2" rx="0.95"
+                fill="url(#al-body)" stroke="white" stroke-opacity="0.45" stroke-width="0.32"/>
+          <rect x="-1.1" y="-0.72" width="2.2" height="1.44" rx="0.38" fill="#22d3ee" opacity="0.9"/>
+          <circle cx="-0.32" cy="0" r="0.26" fill="white" opacity="0.82"/>
+          <path d="M1.45 -0.95 L2.7 -2.05" stroke="#22d3ee" stroke-width="0.35"/>
+          <path d="M2.95 -2.25 A1.35 1.1 0 0 1 4.05 -1.15" stroke="white" stroke-opacity="0.78" stroke-width="0.34" fill="none"/>
+          <circle cx="4.18" cy="-1.05" r="0.22" fill="white" opacity="0.9"/>
+        </g>
+      </g>
+
+      <!-- Inner focus ring -->
+      <circle cx="50" cy="50" r="38" stroke="url(#al-brand)" stroke-width="0.5" fill="none" opacity="0.25"/>
+
+      <!-- Central water drop -->
+      <g transform="translate(50 50) scale(0.75)">
+        <g transform="translate(-50 -50)">
+          <path d="M50 18 C50 18 28 48 28 64 C28 76.15 37.85 86 50 86 C62.15 86 72 76.15 72 64 C72 48 50 18 50 18 Z" fill="url(#al-brand)">
+            <animate attributeName="opacity" values="0.82;1;0.82" dur="4s" repeatCount="indefinite"/>
+          </path>
+          <path d="M40 53 Q 35 63 42 73" stroke="white" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>
+        </g>
+      </g>
+
+    </svg>
+  </g>
+
+  <!-- WORDMARK + tagline + subtitle (right column) -->
+  <g transform="translate(208 0)">
+    <text x="0" y="108"
+          font-family='"Instrument Serif", ui-serif, "Iowan Old Style", Georgia, serif'
+          font-size="92" font-weight="500" letter-spacing="-2" fill="url(#al-wordmark)">
+      AquaLens
+    </text>
+    <text x="3" y="156"
+          font-family='ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace'
+          font-size="12" letter-spacing="3.4" fill="#9aa8a8">
+      AUTONOMOUS · FRESHWATER · MONITORING
+    </text>
+    <rect x="3" y="173" width="465" height="1.5" rx="0.75" fill="url(#al-wordmark)" opacity="0.85"/>
+    <text x="3" y="198"
+          font-family='ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+          font-size="14" fill="#cbd5d5">
+      Two pipelines · deterministic core · Gemini agent workflow · traceable reports
+    </text>
+  </g>
+</svg>

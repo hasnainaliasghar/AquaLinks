@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AquaLinks monitoring report · {{ location_label }}</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 22mm 18mm;
+      @bottom-center {
+        content: "AquaLinks · Page " counter(page) " of " counter(pages);
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        color: #6b7280;
+      }
+    }
+
+    :root {
+      --aqua: #0ea5b7;
+      --aqua-dark: #0b6f7d;
+      --ink: #0f172a;
+      --mute: #475569;
+      --line: #e2e8f0;
+      --paper: #ffffff;
+      --risk-low: #15803d;
+      --risk-medium: #b45309;
+      --risk-high: #b91c1c;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10pt;
+      color: var(--ink);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    h1, h2, h3 { color: var(--ink); }
+    h1 { font-size: 22pt; margin: 0 0 4pt; letter-spacing: -0.01em; }
+    h2 { font-size: 14pt; margin: 18pt 0 8pt; }
+    h3 { font-size: 11pt; margin: 12pt 0 4pt; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mute); }
+
+    .lede {
+      font-size: 11pt;
+      color: var(--mute);
+      max-width: 540pt;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 22pt;
+      border-bottom: 1pt solid var(--line);
+      padding-bottom: 14pt;
+      margin-bottom: 16pt;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    /* Bundled AquaLens SVG embedded as a base64 data URL. The asset
+       is 720 × 240 (3:1) and contains the glyph + wordmark + tagline +
+       accent rule, so we just size the <img> and let it do the work. */
+    .brand-image {
+      width: 230pt;
+      height: 77pt;
+      display: block;
+    }
+
+    /* Fallback when the brand SVG fails to load — emitted by the
+       template's brand_logo_data_url else branch below. */
+    .brand-text {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 11pt;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--aqua-dark);
+      text-transform: lowercase;
+    }
+
+    .report-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: right;
+    }
+
+    .report-kicker-text {
+      font-size: 10pt;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--aqua-dark);
+      font-weight: 800;
+      line-height: 1;
+      margin: 0 0 4pt;
+    }
+
+    .report-title h1 {
+      margin: 0 0 4pt;
+      font-size: 20pt;
+      letter-spacing: -0.01em;
+    }
+
+    .report-title .lede {
+      font-size: 9.5pt;
+      color: var(--mute);
+      margin: 0;
+    }
+
+    .report-title .meta {
+      margin-top: 8pt;
+      font-size: 8.5pt;
+      color: var(--mute);
+      line-height: 1.45;
+    }
+
+    .report-title .meta .session-id {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 7.8pt;
+    }
+
+    .risk-card {
+      border: 1pt solid var(--line);
+      border-radius: 10pt;
+      padding: 14pt 16pt;
+      margin: 14pt 0;
+      background: #f8fafc;
+    }
+
+    /* Land / mixed-AOI warning banner. Sits above the risk card so the
+       reader can't mistake a ground reflectance read for a water-quality
+       assessment. */
+    .aoi-banner {
+      border: 1pt solid;
+      border-radius: 8pt;
+      padding: 10pt 14pt;
+      margin: 4pt 0 16pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .aoi-banner-land {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #7f1d1d;
+    }
+    .aoi-banner-mixed {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+    }
+    .aoi-banner-title {
+      font-weight: 700;
+      font-size: 10pt;
+      margin-bottom: 4pt;
+    }
+    .aoi-banner-body {
+      font-size: 9pt;
+      line-height: 1.45;
+    }
+    .aoi-banner-fraction {
+      font-family: ui-monospace, monospace;
+      font-size: 8pt;
+      opacity: 0.85;
+    }
+
+    .risk-grid {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-bottom: 6pt;
+    }
+    .risk-grid td {
+      border: 0 !important;
+      padding: 0 16pt 0 0 !important;
+      vertical-align: middle;
+    }
+    .risk-grid td:last-child { padding-right: 0 !important; }
+    .risk-grid .pill-cell { width: 100pt; }
+    .risk-grid .score-cell { width: 128pt; }
+    .risk-grid .urgency-cell { width: 120pt; }
+
+    .risk-pill {
+      display: inline-block;
+      width: 92pt;
+      padding: 5pt 0;
+      border-radius: 999pt;
+      font-weight: 700;
+      font-size: 11pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
+      line-height: 1.15;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .risk-pill.low { background: var(--risk-low); }
+    .risk-pill.medium { background: var(--risk-medium); }
+    .risk-pill.high { background: var(--risk-high); }
+
+    .risk-score {
+      display: inline-block;
+      line-height: 1.2;
+      white-space: nowrap;
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0;
+      margin-top: 1pt;
+    }
+
+    .risk-meta {
+      display: block;
+    }
+    .risk-meta-label {
+      font-size: 8pt;
+      color: var(--mute);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 2pt;
+    }
+    .risk-meta-value {
+      font-size: 11pt;
+      font-weight: 600;
+      text-transform: capitalize;
+      color: var(--ink);
+    }
+
+    .urgency {
+      font-size: 9pt;
+      color: var(--mute);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+    }
+    /* Keep a label and its value together on the same page — critical for
+       the glossary where a term cell and its description were getting split. */
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    th, td {
+      text-align: left;
+      padding: 6pt 8pt;
+      border-bottom: 1pt solid var(--line);
+      vertical-align: top;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    th { color: var(--mute); font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; }
+    /* Each section should try to start on a clean page rather than splitting
+       a heading away from its content. */
+    section {
+      page-break-inside: auto;
+    }
+    section > h3 {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .index-chart {
+      margin-bottom: 6pt;
+    }
+
+    .footer-note {
+      font-size: 8.5pt;
+      color: var(--mute);
+      border-top: 1pt solid var(--line);
+      padding-top: 10pt;
+      margin-top: 18pt;
+    }
+
+    .disclaimer {
+      background: #fef2f2;
+      border: 1pt solid #fecaca;
+      color: #7f1d1d;
+      padding: 10pt 12pt;
+      border-radius: 8pt;
+      font-size: 9pt;
+      margin: 12pt 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12pt;
+    }
+
+    /* Citizen-summary panel — the "What this means for you" block. The
+       tone modifier swaps the accent colour and headline tint so the
+       reader's eye lands on the right verdict at a glance. */
+    .summary-card {
+      border: 1pt solid;
+      border-radius: 10pt;
+      padding: 14pt 16pt;
+      margin: 14pt 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .summary-card.safe { border-color: #bbf7d0; background: #f0fdf4; }
+    .summary-card.caution { border-color: #fde68a; background: #fffbeb; }
+    .summary-card.avoid { border-color: #fecaca; background: #fef2f2; }
+    .summary-card.not_water { border-color: #fde68a; background: #fffbeb; }
+    .summary-card.unknown { border-color: var(--line); background: #f8fafc; }
+    .summary-pill {
+      display: inline-block;
+      padding: 3pt 8pt;
+      border-radius: 999pt;
+      font-weight: 700;
+      font-size: 8pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
+    }
+    .summary-pill.safe { background: var(--risk-low); }
+    .summary-pill.caution { background: var(--risk-medium); }
+    .summary-pill.avoid { background: var(--risk-high); }
+    .summary-pill.not_water { background: #92400e; }
+    .summary-pill.unknown { background: var(--mute); }
+    .summary-headline {
+      font-size: 12pt;
+      font-weight: 700;
+      margin: 6pt 0 4pt;
+      color: var(--ink);
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10pt;
+      margin-top: 10pt;
+    }
+    .summary-tile {
+      border: 1pt solid var(--line);
+      border-radius: 6pt;
+      padding: 8pt 10pt;
+      background: rgba(255,255,255,0.7);
+      font-size: 9pt;
+    }
+    .summary-tile-label {
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--mute);
+      margin: 0 0 4pt;
+    }
+    .summary-tile-body { margin: 0; line-height: 1.45; }
+    .summary-footnote {
+      margin-top: 10pt;
+      padding: 8pt 10pt;
+      border: 1pt solid var(--line);
+      border-radius: 6pt;
+      background: rgba(255,255,255,0.6);
+      font-size: 8.5pt;
+      color: var(--mute);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div style="display: flex; align-items: center; gap: 10pt;">
+        <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="pdfBrandGrad" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="50%" stop-color="#06b6d4"/>
+              <stop offset="100%" stop-color="#0f766e"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 18 C50 18 28 48 28 64 C28 76.15 37.85 86 50 86 C62.15 86 72 76.15 72 64 C72 48 50 18 50 18 Z" fill="url(#pdfBrandGrad)"/>
+          <path d="M40 53 Q 35 63 42 73" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+        </svg>
+        <div>
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 24pt; font-weight: 800; color: #0b6f7d; letter-spacing: -0.02em; line-height: 1;">AquaLinks</div>
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.18em; color: #64748b; text-transform: uppercase; margin-top: 3pt;">Autonomous Freshwater Monitoring</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-title">
+      <p class="report-kicker-text">Analysis Report</p>
+      <h1>{{ location_label }}</h1>
+      <p class="lede">
+        Monitoring window {{ session.start_date }} → {{ session.end_date }}
+      </p>
+      <p class="meta">
+        Generated {{ generated_at }}<br/>
+        <span class="session-id">Session {{ session.id }}</span>
+      </p>
+    </div>
+  </header>
+
+  {% if session.aoi_type and session.aoi_type.value != "water" %}
+  <section>
+    <div class="aoi-banner aoi-banner-{{ session.aoi_type.value }}">
+      <div class="aoi-banner-title">
+        {% if session.aoi_type.value == "land" %}This AOI is mostly land
+        {% else %}Mixed water and land AOI{% endif %}
+      </div>
+      <div class="aoi-banner-body">
+        {% if session.aoi_type.value == "land" %}
+          Less than 20% of the polygon passes the open-water test
+          (NDWI &gt; 0 <em>and</em> MNDWI &gt; 0). Spectral water-quality
+          indices like NDCI and NDTI are <em>not</em> measuring water here —
+          they reflect vegetation, soil, or built-up surfaces. Move the AOI
+          over an actual water body and re-run before relying on the risk
+          score.
+        {% else %}
+          Only part of the polygon passes the open-water test
+          (NDWI &gt; 0 <em>and</em> MNDWI &gt; 0). Water-quality indices over
+          the water portion still apply, but land pixels dilute the signal —
+          treat the score as approximate.
+        {% endif %}
+        {% if session.water_fraction is not none %}
+          <span class="aoi-banner-fraction">
+            · {{ "%.0f" | format(session.water_fraction * 100) }}% water pixels
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section>
+    <h3>Risk assessment</h3>
+    <div class="risk-card">
+      <table class="risk-grid" role="presentation" aria-hidden="true">
+        <tr>
+          <td class="pill-cell">
+            <span class="risk-pill {{ risk.level.value }}">{{ risk.level.value | upper }}</span>
+          </td>
+          <td class="score-cell">
+            <div class="risk-meta">
+              <span class="risk-meta-label">Score</span>
+              <span class="risk-score">{{ "%.0f" | format(risk.score * 100) }}/100</span>
+            </div>
+          </td>
+          <td class="urgency-cell">
+            <div class="risk-meta">
+              <span class="risk-meta-label">Urgency</span>
+              <span class="risk-meta-value">{{ risk.urgency.value }}</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <p style="margin-top: 10pt;"><strong>Recommendation.</strong> {{ risk.recommendation }}</p>
+      <p><strong>Reasoning.</strong> {{ risk.reasoning }}</p>
+    </div>
+
+    {% if citizen_summary %}
+    <div class="summary-card {{ citizen_summary.tone }}">
+      <span class="summary-pill {{ citizen_summary.tone }}">
+        {% if citizen_summary.tone == "safe" %}Likely safe
+        {% elif citizen_summary.tone == "caution" %}Use caution
+        {% elif citizen_summary.tone == "avoid" %}Avoid contact
+        {% elif citizen_summary.tone == "not_water" %}Not water
+        {% else %}Pending{% endif %}
+      </span>
+      <p class="summary-headline">{{ citizen_summary.headline }}</p>
+      <p style="margin: 0; line-height: 1.5;">{{ citizen_summary.bottom_line }}</p>
+
+      <div class="summary-grid">
+        <div class="summary-tile">
+          <p class="summary-tile-label">For you</p>
+          <p class="summary-tile-body">{{ citizen_summary.safety_for_humans }}</p>
+        </div>
+        <div class="summary-tile">
+          <p class="summary-tile-label">For pets and kids</p>
+          <p class="summary-tile-body">{{ citizen_summary.safety_for_pets_and_kids }}</p>
+        </div>
+      </div>
+
+      <div class="summary-footnote">
+        <strong>What we couldn't check.</strong>
+        {{ citizen_summary.what_we_could_not_check }}
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 12pt; border: 1pt solid var(--line); border-radius: 8pt; padding: 10pt 12pt; background: #f8fafc;">
+      <p style="margin: 0 0 6pt; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mute);">
+        How to read the score
+      </p>
+      <table style="border: 0; width: 100%;">
+        <tr style="border: 0;">
+          <td style="border: 0; padding: 2pt 6pt 2pt 0;">
+            <span style="display: inline-block; width: 9pt; height: 9pt; border-radius: 50%; background: var(--risk-low); margin-right: 4pt; vertical-align: middle;"></span>
+            <strong>Low</strong> · 0–32 · routine cadence is fine
+          </td>
+          <td style="border: 0; padding: 2pt 6pt;">
+            <span style="display: inline-block; width: 9pt; height: 9pt; border-radius: 50%; background: var(--risk-medium); margin-right: 4pt; vertical-align: middle;"></span>
+            <strong>Medium</strong> · 33–65 · sample within a week
+          </td>
+          <td style="border: 0; padding: 2pt 0 2pt 6pt;">
+            <span style="display: inline-block; width: 9pt; height: 9pt; border-radius: 50%; background: var(--risk-high); margin-right: 4pt; vertical-align: middle;"></span>
+            <strong>High</strong> · 66–100 · sample within 48 hours
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Advisory only.</strong> AquaLinks does not certify water safety,
+      detect toxins, or replace laboratory testing. Use these results to
+      prioritise field sampling and follow up with accredited methods.
+      {{ risk.limitations }}
+    </div>
+  </section>
+
+  <section>
+    <h3>Scene metadata</h3>
+    <table>
+      <tr>
+        <th style="width: 28%;">Provider</th>
+        <td>{{ session.scene_provider or "—" }}</td>
+      </tr>
+      <tr>
+        <th>Scene ID</th>
+        <td>{{ session.scene_id or "—" }}</td>
+      </tr>
+      <tr>
+        <th>Capture date</th>
+        <td>{{ session.scene_capture_date or "—" }}</td>
+      </tr>
+      <tr>
+        <th>Cloud cover</th>
+        <td>{% if session.scene_cloud_cover is not none %}{{ "%.1f" | format(session.scene_cloud_cover) }}%{% else %}—{% endif %}</td>
+      </tr>
+      <tr>
+        <th>Water body area</th>
+        <td>{% if water_body.area_km2 %}{{ "%.2f" | format(water_body.area_km2) }} km²{% else %}—{% endif %}</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h3>Spectral indices</h3>
+    <div class="grid">
+      {% for idx in indices %}
+        <div>
+          <div class="index-chart">{{ idx.chart_svg | safe }}</div>
+          <div style="font-size: 8.5pt; color: var(--mute);">
+            Bands: {{ idx.bands | join(", ") }} · {{ idx.interpretation }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if evidence %}
+  <section>
+    <h3>Field evidence</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Reported</th>
+          <th>Color</th>
+          <th>Odor</th>
+          <th>Algae</th>
+          <th>Dead fish</th>
+          <th>Rainfall</th>
+          <th>Complaints</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in evidence %}
+        <tr>
+          <td>{{ ev.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ ev.water_color.value }}</td>
+          <td>{{ ev.odor.value }}</td>
+          <td>{{ "yes" if ev.algae_present else "no" }}</td>
+          <td>{{ ev.dead_fish_count }}</td>
+          <td>{{ "%.1f" | format(ev.rainfall_mm) }} mm</td>
+          <td>{{ ev.complaints_count }}</td>
+          <td>{{ ev.notes or "" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  {% if agent_summary and agent_summary.steps %}
+  <section>
+    <h3>How AquaLinks worked this out</h3>
+    <p style="margin: 0 0 8pt;">
+      This report wasn't written by one model in one go. A small team of
+      Gemini agents handled different parts of the job, and the deterministic
+      Python core handled the numbers. Here is what each part did for your
+      water body, in plain language.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 22%;">Step</th>
+          <th>What it did</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for step in agent_summary.steps %}
+        <tr>
+          <td>
+            <strong>{{ step.label }}</strong><br/>
+            <small style="color: var(--mute);">{{ step.subtitle }}</small>
+          </td>
+          <td>{{ step.body }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if agent_summary.citations %}
+    <p class="meta" style="margin-top: 10pt;">
+      <strong>External sources the Historian cited</strong>
+    </p>
+    <ul>
+      {% for cite in agent_summary.citations %}
+      <li>
+        {% if cite.uri %}<a href="{{ cite.uri }}">{{ cite.title or cite.uri }}</a>
+        {% else %}{{ cite.title or "(untitled source)" }}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <p class="meta" style="margin-top: 8pt; color: var(--mute);">
+      Run details · model {{ agent_summary.gemini_model }} ·
+      {{ agent_summary.total_tokens }} tokens ·
+      {{ agent_summary.total_latency_ms }} ms total.
+    </p>
+  </section>
+  {% endif %}
+
+  <section>
+    <h3>Glossary</h3>
+    <table>
+      <tr>
+        <th style="width: 22%;">NDWI</th>
+        <td>Tells us where water actually is — built from near-infrared and short-wave infrared light.</td>
+      </tr>
+      <tr>
+        <th>MNDWI</th>
+        <td>Same idea as NDWI but more reliable in cities (uses green light instead of NIR).</td>
+      </tr>
+      <tr>
+        <th>NDTI</th>
+        <td>How murky the water looks — a stand-in for suspended sediment.</td>
+      </tr>
+      <tr>
+        <th>NDCI</th>
+        <td>A proxy for chlorophyll-a; an early-warning for algal blooms (not a confirmed measurement).</td>
+      </tr>
+      <tr>
+        <th>NDVI</th>
+        <td>Vegetation health around the shoreline; stress here often co-occurs with water-quality changes.</td>
+      </tr>
+      <tr>
+        <th>WRI</th>
+        <td>A second water-vs-land moisture signal that complements NDWI/MNDWI.</td>
+      </tr>
+      <tr>
+        <th>Risk score</th>
+        <td>0–100 number combining the indices and any field evidence. Low &lt; 33, Medium &lt; 66, High otherwise.</td>
+      </tr>
+      <tr>
+        <th>Urgency</th>
+        <td>Routine = next planned visit. Elevated = within a week. Immediate = within 48 hours.</td>
+      </tr>
+      <tr>
+        <th>Cloud cover</th>
+        <td>Percentage of the satellite scene hidden by clouds. We picked the most recent scene below the threshold you set.</td>
+      </tr>
+      <tr>
+        <th>Provider</th>
+        <td>Where the imagery came from — Microsoft Planetary Computer's free Sentinel-2 L2A archive.</td>
+      </tr>
+    </table>
+  </section>
+
+  <footer class="footer-note">
+    AquaLinks is licensed under the MIT License.
+    Sentinel-2 imagery © European Union, contains Copernicus Sentinel data
+    accessed via the Microsoft Planetary Computer.
+  </footer>
+</body>
+</html>

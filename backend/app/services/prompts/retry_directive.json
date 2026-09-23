@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aqualens.system_instruction.retry.v1",
+  "description": "Appended to the system instruction on a retry after a parse / schema failure. Tightens the framing without changing the rules.",
+  "directive": "STRICT MODE",
+  "reason": "The previous response was rejected.",
+  "constraints": [
+    "Respond with the JSON object only.",
+    "No prose.",
+    "No code fences.",
+    "No markdown.",
+    "Raw JSON matching the response schema."
+  ]
+}

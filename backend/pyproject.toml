@@ -1,0 +1,93 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aqualens-backend"
+version = "1.0.0"
+description = "AquaLens — autonomous freshwater monitoring agent (backend)"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Talha Abid" }]
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.32.1",
+  "starlette==0.41.3",
+  "pydantic==2.10.4",
+  "pydantic-settings==2.7.0",
+  "sqlmodel==0.0.22",
+  "SQLAlchemy==2.0.36",
+  "alembic==1.14.0",
+  "GeoAlchemy2==0.16.0",
+  "psycopg[binary]==3.2.3",
+  "numpy==2.1.3",
+  "rasterio==1.4.3",
+  "Shapely==2.0.6",
+  "pyproj==3.7.0",
+  "pystac-client==0.8.5",
+  "planetary-computer==1.0.0",
+  "groq>=0.9.0",
+  "tavily-python>=0.3.0",
+  "duckduckgo-search>=6.0",
+  "Jinja2==3.1.5",
+  "weasyprint==63.1",
+  "matplotlib==3.10.0",
+  "httpx==0.28.1",
+  "python-multipart==0.0.20",
+  "Pillow==11.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.4",
+  "pytest-asyncio==0.24.0",
+  "pytest-mock==3.14.0",
+  "respx==0.21.1",
+  "ruff==0.8.4",
+  "black==24.10.0",
+  "freezegun==1.5.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+"app.services.templates" = ["*.html.j2", "fonts/*"]
+"app.services.prompts" = ["*.json"]
+"app.services.agent.prompts" = ["*.json"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "C4", "RUF"]
+ignore = ["E501", "B008", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B018", "N806"]
+"alembic/env.py" = ["I001"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = '''
+/(
+  \.venv
+  | venv
+  | env
+  | alembic/versions
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]

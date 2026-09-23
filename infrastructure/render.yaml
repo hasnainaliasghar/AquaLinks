@@ -1,0 +1,69 @@
+# Render Blueprint — AquaLens backend (Free tier).
+#
+# Stack: Render free Web Service (Docker) + Vercel frontend + Supabase
+# Postgres + PostGIS + pgvector. The free Web Service plan does not
+# support persistent disks, so upload + report directories are kept on
+# the ephemeral container filesystem (regenerated on every PDF download;
+# field-evidence photos are best-effort across cold starts — upgrade
+# to the Starter plan and re-add the `disk:` block for permanence).
+#
+# All secret values are set from the Render dashboard via `sync: false`.
+services:
+  - type: web
+    name: aqualens-backend
+    runtime: docker
+    repo: https://github.com/talhaabidj/aqualens
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/v1/health
+    envVars:
+      # --- Supabase Postgres (session pooler — port 5432) -----------------
+      # Paste the connection string from Supabase → Settings → Database →
+      # *Session pooler* (NOT the transaction pooler on 6543, which doesn't
+      # support prepared statements). The backend auto-coerces a bare
+      # `postgresql://` URL to `postgresql+psycopg://` so you can paste
+      # whatever Supabase shows you.
+      - key: DATABASE_URL
+        sync: false
+
+      # --- Gemini ---------------------------------------------------------
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY_FALLBACK
+        sync: false
+      - key: GOOGLE_API_KEY_FALLBACK_2
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_EMBEDDING_MODEL
+        value: text-embedding-004
+
+      # --- Multi-agent layer ----------------------------------------------
+      - key: AQUALENS_AGENTIC_MODE
+        value: "true"
+
+      # --- Imagery + remote-sensing knobs ---------------------------------
+      - key: PC_STAC_URL
+        value: https://planetarycomputer.microsoft.com/api/stac/v1
+      - key: DEFAULT_LOOKBACK_DAYS
+        value: "30"
+      - key: MAX_CLOUD_COVER
+        value: "30"
+
+      # --- CORS -----------------------------------------------------------
+      # Comma-separated list of allowed origins. Set to your Vercel URL,
+      # e.g. https://aqualens.vercel.app (plus optional preview URLs).
+      - key: CORS_ALLOW_ORIGINS
+        sync: false
+
+      # --- Ephemeral filesystem paths -------------------------------------
+      # `/tmp` is writable on Render free tier. PDFs are re-rendered on
+      # every download (`report_generator.persist_report` just refreshes
+      # the cache row), so losing them on a cold start is a non-issue.
+      # Field-evidence photo uploads are best-effort across restarts.
+      - key: UPLOAD_DIR
+        value: /tmp/aqualens/uploads
+      - key: REPORT_DIR
+        value: /tmp/aqualens/reports

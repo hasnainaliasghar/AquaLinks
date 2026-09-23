@@ -1,0 +1,76 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.hypothesis/
+dist/
+build/
+*.whl
+
+# Alembic (keep migrations, ignore local sqlite)
+*.sqlite
+*.sqlite3
+*.db
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/playwright/.cache/
+/frontend/blob-report/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Generated PDFs / uploads
+backend/data/uploads/
+backend/data/reports/
+backend/data/*.pdf
+backend/backend/data/reports/
+
+# Local-only docs (not for distribution)
+docs/prd.md
+.vercel
