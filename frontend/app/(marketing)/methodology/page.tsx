@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Methodology",
   description:
-    "Two linked pipelines: a deterministic numeric core, then a five-agent Gemini layer that writes the brief and the citizen summary.",
+    "Two linked pipelines: a deterministic numeric core, then a five-agent Groq layer that writes the brief and the citizen summary.",
   path: "/methodology",
 });
 
@@ -79,7 +79,7 @@ export default function MethodologyPage() {
           AquaLinks runs two linked pipelines. The deterministic numeric core
           pulls a fresh Sentinel-2 scene, computes six band-math indices over
           the water mask, and produces a 0–100 risk score that is unit-tested
-          and never moved by the LLM. The Gemini agent layer wraps that core
+          and never moved by the LLM. The Groq agent layer wraps that core
           with five specialist agents that choose inputs, gather grounded
           context, write the brief, and publish a citizen-facing summary.
           Every step is reproducible and recorded.
@@ -177,7 +177,7 @@ export default function MethodologyPage() {
             Once deterministic scoring is complete, the runtime hands the
             session bundle to the agent layer. Agents can pick inputs,
             gather context, and write prose, but they cannot override the
-            deterministic level or urgency. Each agent is a focused Gemini
+            deterministic level or urgency. Each agent is a focused Groq AI
             call constrained by a domain-specific system prompt and a
             structured-output contract that forbids overclaiming.
           </p>
@@ -188,7 +188,7 @@ export default function MethodologyPage() {
         <section className="mt-14 space-y-6">
           <h2 className="font-display text-2xl tracking-tight">Multi-agent workflow</h2>
           <p className="text-muted-foreground">
-            When a session runs, a small graph of specialised Gemini agents
+            When a session runs, a small graph of specialised Groq agents
             plans the work, gathers context, drafts the brief, and turns it
             into a citizen-facing summary. Agent colour and action-label
             wording match the in-app Agentic workflow card so the marketing
@@ -248,7 +248,7 @@ const AGENT_STEPS: AgentStep[] = [
     label: "Agent 1",
     name: "Coordinator",
     action: "plans the workflow",
-    capability: "Gemini thinking mode",
+    capability: "Groq AI reasoning",
     body: "Reads the AOI + history and decides per-agent budgets. Always schedules Scout, Analyst, and Reporter for water AOIs; schedules Historian when prior sessions exist.",
     tint: "text-aqua-300",
   },
@@ -256,8 +256,8 @@ const AGENT_STEPS: AgentStep[] = [
     label: "Agent 2",
     name: "Scout",
     action: "picks the satellite scene",
-    capability: "Function calling + Gemini Vision",
-    body: "Calls Planetary Computer for Sentinel-2 candidates, then asks Gemini Vision to look at the actual RGB thumbnail. If the freshest scene is hazy over the AOI, the Scout re-queries with a tighter cloud bound.",
+    capability: "Function calling + Groq Vision",
+    body: "Calls Planetary Computer for Sentinel-2 candidates, then asks Groq Vision to look at the actual RGB thumbnail. If the freshest scene is hazy over the AOI, the Scout re-queries with a tighter cloud bound.",
     tint: "text-sky-300",
   },
   {
@@ -265,7 +265,7 @@ const AGENT_STEPS: AgentStep[] = [
     name: "Historian",
     action: "pulls trends and grounded context",
     capability: "History + Search grounding + memory",
-    body: "Reads prior sessions, runs a Mann-Kendall significance test in Gemini's Python sandbox, cites real local news via Google Search grounding + URL Context, and writes a distilled note back to per-water-body memory (text-embedding-004 + pgvector) for next time.",
+    body: "Reads prior sessions, runs a Mann-Kendall significance test in Groq's Python sandbox, cites real local news via Search grounding + URL Context, and writes a distilled note back to per-water-body memory for next time.",
     tint: "text-amber-300",
   },
   {
@@ -273,7 +273,7 @@ const AGENT_STEPS: AgentStep[] = [
     name: "Analyst",
     action: "writes and self-critiques the brief",
     capability: "Structured output + critique loop",
-    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Gemini call critiques the draft against the hard rules (cites two indices, names a real limitation, no overclaiming). If anything fails the Analyst rewrites once. Both drafts land in the trace.",
+    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Groq call critiques the draft against the hard rules (cites two indices, names a real limitation, no overclaiming). If anything fails the Analyst rewrites once. Both drafts land in the trace.",
     tint: "text-violet-300",
   },
   {

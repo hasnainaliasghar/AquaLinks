@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "About",
   description:
-    "AquaLinks is an open-source freshwater monitoring platform with a deterministic remote-sensing core and a traceable Gemini agent workflow.",
+    "AquaLinks is an open-source freshwater monitoring platform with a deterministic remote-sensing core and a traceable Groq agent workflow.",
   path: "/about",
 });
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
             managers, NGOs, and researchers triage freshwater monitoring
             work. It runs a deterministic remote-sensing core first
             (Sentinel-2 retrieval, six water-quality spectral indices, a
-            weighted risk score), then a five-agent Gemini layer — Coordinator,
+            weighted risk score), then a five-agent Groq layer — Coordinator,
             Scout, Historian, Analyst, Reporter — that adds context and
             writes the brief and citizen-facing summary.
           </p>

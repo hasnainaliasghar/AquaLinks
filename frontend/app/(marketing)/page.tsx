@@ -11,7 +11,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "AquaLinks — autonomous freshwater monitoring",
   description:
-    "Pick an area on the map. AquaLinks fetches Sentinel-2, computes water-quality indices, fuses field evidence, and writes an advisory risk brief — wrapped by a five-agent Gemini workflow.",
+    "Pick an area on the map. AquaLinks fetches Sentinel-2, computes water-quality indices, fuses field evidence, and writes an advisory risk brief — wrapped by a five-agent Groq workflow.",
   path: "/",
 });
 

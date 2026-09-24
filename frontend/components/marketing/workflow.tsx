@@ -6,7 +6,7 @@
  * Those numbers are unit-tested, replayable Python — the agent layer
  * is never allowed to move them.
  *
- * Pipeline 2 is the multi-agent Gemini layer that wraps the core:
+ * Pipeline 2 is the multi-agent Groq layer that wraps the core:
  * Coordinator plans the run, Scout/Historian/Analyst/Reporter each do
  * a focused, structured job. Each agent is numbered (Agent 1 …
  * Agent 5) and gets a colour-coded action label that matches the
@@ -97,7 +97,7 @@ const AGENT_STEPS: AgentStep[] = [
     n: "1",
     name: "Coordinator",
     action: "plans the workflow",
-    capability: "Gemini thinking mode",
+    capability: "Groq AI reasoning",
     body: "Reads the AOI plus its history and decides per-agent budgets. Always schedules Scout, Analyst, and Reporter; schedules Historian only when prior sessions exist.",
     icon: Network,
     tint: "text-aqua-300",
@@ -108,8 +108,8 @@ const AGENT_STEPS: AgentStep[] = [
     n: "2",
     name: "Scout",
     action: "picks the satellite scene",
-    capability: "Function calling + Gemini Vision",
-    body: "Evaluates candidate scenes and asks Gemini Vision to look at the actual RGB thumbnail. If haze sits over the AOI it re-queries with a tighter cloud bound.",
+    capability: "Function calling + Groq Vision",
+    body: "Evaluates candidate scenes and asks Groq Vision to look at the actual RGB thumbnail. If haze sits over the AOI it re-queries with a tighter cloud bound.",
     icon: Satellite,
     tint: "text-sky-300",
     ring: "ring-sky-400/30",
@@ -120,7 +120,7 @@ const AGENT_STEPS: AgentStep[] = [
     name: "Historian",
     action: "pulls trends and grounded context",
     capability: "History + Search grounding + memory",
-    body: "Pulls prior sessions, runs a Mann-Kendall significance test in Gemini's Python sandbox, cites real local news via Google Search grounding + URL Context, and writes a distilled note back to per-water-body memory for next time.",
+    body: "Pulls prior sessions, runs a Mann-Kendall significance test in Groq's Python sandbox, cites real local news via Search grounding + URL Context, and writes a distilled note back to per-water-body memory for next time.",
     icon: BookOpenText,
     tint: "text-amber-300",
     ring: "ring-amber-400/30",
@@ -131,7 +131,7 @@ const AGENT_STEPS: AgentStep[] = [
     name: "Analyst",
     action: "writes and self-critiques the brief",
     capability: "Structured output + critique loop",
-    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Gemini call critiques the draft against the hard rules; the Analyst rewrites once if anything fails. Both drafts land in the trace.",
+    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Groq call critiques the draft against the hard rules; the Analyst rewrites once if anything fails. Both drafts land in the trace.",
     icon: Microscope,
     tint: "text-violet-300",
     ring: "ring-violet-400/30",
@@ -142,7 +142,7 @@ const AGENT_STEPS: AgentStep[] = [
     name: "Reporter",
     action: "writes the citizen summary",
     capability: "Structured response schema",
-    body: "Turns the deterministic numbers plus Scout / Historian / Analyst outputs into the public-facing card: likely-safe · use caution · avoid, guidance for adults and for pets and kids, explicit limitations, and citations when grounded context exists. Falls back to a deterministic summary if the Gemini call fails.",
+    body: "Turns the deterministic numbers plus Scout / Historian / Analyst outputs into the public-facing card: likely-safe · use caution · avoid, guidance for adults and for pets and kids, explicit limitations, and citations when grounded context exists. Falls back to a deterministic summary if the Groq call fails.",
     icon: Newspaper,
     tint: "text-emerald-300",
     ring: "ring-emerald-400/30",
@@ -164,7 +164,7 @@ export function Workflow() {
             </h2>
             <p className="mt-4 text-balance text-muted-foreground">
               The deterministic numeric core runs first and produces the
-              auditable numbers. The Gemini agent layer wraps it: agents
+              auditable numbers. The Groq agent layer wraps it: agents
               choose inputs and write prose, but they can&apos;t move the
               risk band. Every decision lands in the per-session trace.
             </p>
@@ -206,13 +206,13 @@ export function Workflow() {
           />
         </FadeIn>
 
-        {/* Pipeline 2 — Gemini agent layer */}
+        {/* Pipeline 2 — Groq agent layer */}
         <FadeIn delay={0.26}>
           <div className="rounded-2xl border border-border bg-card/70 p-5 sm:p-7">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-display text-xl tracking-tight">
                 Pipeline 2
-                <span className="text-muted-foreground"> · Gemini agent layer</span>
+                <span className="text-muted-foreground"> · Groq agent layer</span>
               </h3>
               <span className="inline-flex items-center gap-1.5 rounded-md border border-aqua-400/30 bg-aqua-400/5 px-2 py-0.5 text-2xs font-medium text-aqua-300">
                 <Sparkles className="size-3" aria-hidden />
@@ -282,7 +282,7 @@ function AgentCard({ agent }: { agent: AgentStep }) {
             agent.chip,
           )}
         >
-          Gemini
+          Groq
         </span>
       </div>
       <div className="mt-3 flex items-start gap-3">
@@ -308,7 +308,7 @@ const KIND_BADGE = {
     icon: CheckCircle2,
   },
   agent: {
-    label: "Gemini agent",
+    label: "Groq agent",
     className: "border-aqua-400/30 bg-aqua-400/5 text-aqua-300",
     icon: Sparkles,
   },

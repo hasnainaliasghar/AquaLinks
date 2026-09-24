@@ -256,7 +256,7 @@ function Scaffold({
       </ol>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Each agent is a focused Gemini call. As soon as one finishes the next
+        Each agent is a focused Groq call. As soon as one finishes the next
         one starts — the trace below fills in live.
       </p>
     </section>

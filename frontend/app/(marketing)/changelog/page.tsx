@@ -29,7 +29,7 @@ const RELEASES: Release[] = [
     date: "2026-05-16",
     headline: "Initial release",
     summary:
-      "Production-grade rewrite. Real Sentinel-2 retrieval via Microsoft Planetary Computer, six band-math indices over an NDWI ∧ MNDWI water mask, deterministic risk scoring, Gemini 2.5 Flash narrative grounded in the numbers, branded WeasyPrint PDF reports, and a polished Next.js 15 frontend.",
+      "Production-grade rewrite. Real Sentinel-2 retrieval via Microsoft Planetary Computer, six band-math indices over an NDWI ∧ MNDWI water mask, deterministic risk scoring, Groq AI narrative grounded in the numbers, branded WeasyPrint PDF reports, and a polished Next.js 15 frontend.",
     groups: [
       {
         title: "Pipeline",
@@ -38,15 +38,15 @@ const RELEASES: Release[] = [
           "Six band-math indices (NDWI · MNDWI · NDTI · NDCI · NDVI · WRI), masked-mean aggregated over the water polygon.",
           "Combined NDWI ∧ MNDWI water mask (Xu 2006) — defeats the well-known NDWI-only false positive over vegetation.",
           "Deterministic weighted risk model with bounded field-evidence bonus; numeric band is auditable, unit-tested, and never moved by the LLM.",
-          "Gemini 2.5 Flash narrative bound to the deterministic numbers; automatic fallback to a second API key on quota / 429 errors; deterministic fallback for offline CI.",
+          "Groq AI narrative bound to the deterministic numbers; automatic fallback to a second API key on quota / 429 errors; deterministic fallback for offline CI.",
           "Land-vs-water sanity check classifies every AOI as water · mixed · land and surfaces a prominent banner + LLM disclosure when the AOI isn't a water body.",
         ],
       },
       {
         title: "Agent layer",
         items: [
-          "Coordinator (Gemini thinking mode) plans a workflow over four specialist agents and adapts to whether the water body has prior history.",
-          "Scout uses Gemini function calling + multimodal vision on the real Sentinel-2 RGB thumbnail; re-queries STAC with a tighter cloud bound when Vision flags haze over the AOI.",
+          "Coordinator (Groq AI reasoning) plans a workflow over four specialist agents and adapts to whether the water body has prior history.",
+          "Scout uses Groq function calling + multimodal vision on the real Sentinel-2 RGB thumbnail; re-queries STAC with a tighter cloud bound when Vision flags haze over the AOI.",
           "Historian combines Google Search grounding, URL Context, code execution (Mann-Kendall trend significance) and long-context history into a single briefing the Analyst quotes verbatim.",
           "Analyst drafts the narrative, runs a self-critique pass against the hard rules, and rewrites once when the critique rejects the draft.",
           "Reporter turns the multi-agent outputs into a structured citizen summary card (tone, guidance, limitations, and citations).",

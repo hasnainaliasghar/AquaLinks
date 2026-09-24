@@ -27,7 +27,7 @@ export default function EvidencePage() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           Submit what the field team observed. The risk model re-runs immediately and
-          Gemini rewrites the brief on the next refresh.
+          Groq rewrites the brief on the next refresh.
         </p>
       </FadeIn>
 

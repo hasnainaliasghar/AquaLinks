@@ -10,7 +10,7 @@
  *   2. The four specialists Agents 2–5 in a 2×2 grid — Scout,
  *      Historian, Analyst, Reporter. Each has a colour-coded action
  *      label that matches the in-app Agentic workflow card, plus the
- *      actual tool surface and Gemini capability it uses.
+ *      actual tool surface and Groq capability it uses.
  *   3. Two persistence rails (agent_traces, agent_memory) below the
  *      grid — what the agents write so the next session can read.
  *
@@ -52,7 +52,7 @@ const SPECIALISTS: SpecialistAgent[] = [
     name: "Scout",
     action: "picks the satellite scene",
     capability: "Function calling + multimodal vision",
-    body: "Calls Planetary Computer for Sentinel-2 candidates, then asks Gemini Vision to look at the actual RGB thumbnail. If haze sits over the AOI it re-queries with a tighter cloud bound.",
+    body: "Calls Planetary Computer for Sentinel-2 candidates, then asks Groq Vision to look at the actual RGB thumbnail. If haze sits over the AOI it re-queries with a tighter cloud bound.",
     tools: ["list_recent_scenes", "inspect_scene", "look_at_thumbnail"],
     icon: Satellite,
     tint: "text-sky-300",
@@ -63,7 +63,7 @@ const SPECIALISTS: SpecialistAgent[] = [
     name: "Historian",
     action: "pulls trends and grounded context",
     capability: "Code execution + Search grounding + memory",
-    body: "Pulls prior sessions, runs a Mann-Kendall significance test in Gemini's Python sandbox, cites real news via Google Search grounding + URL Context, and writes a distilled note back to per-water-body memory for next time.",
+    body: "Pulls prior sessions, runs a Mann-Kendall significance test in Groq's Python sandbox, cites real news via Search grounding + URL Context, and writes a distilled note back to per-water-body memory for next time.",
     tools: ["get_session_history", "compute_trend", "semantic_recall_notes"],
     icon: BookOpenText,
     tint: "text-amber-300",
@@ -74,7 +74,7 @@ const SPECIALISTS: SpecialistAgent[] = [
     name: "Analyst",
     action: "writes and self-critiques the brief",
     capability: "Structured output + critique loop",
-    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Gemini call critiques the draft against the hard rules; the Analyst rewrites once if anything fails. Both drafts land in the trace.",
+    body: "Drafts recommendation + reasoning + limitations against the deterministic numbers. A separate Groq call critiques the draft against the hard rules; the Analyst rewrites once if anything fails. Both drafts land in the trace.",
     tools: ["draft_call", "critique_call", "rewrite_call"],
     icon: Microscope,
     tint: "text-violet-300",
@@ -85,7 +85,7 @@ const SPECIALISTS: SpecialistAgent[] = [
     name: "Reporter",
     action: "writes the citizen summary",
     capability: "Structured response schema",
-    body: "Turns Scout / Historian / Analyst outputs plus the deterministic risk numbers into the public-facing card: tone (likely-safe / use caution / avoid), guidance for adults and for pets and kids, explicit limitations, and citations when grounded context exists. Falls back to a deterministic citizen summary if the Gemini call fails.",
+    body: "Turns Scout / Historian / Analyst outputs plus the deterministic risk numbers into the public-facing card: tone (likely-safe / use caution / avoid), guidance for adults and for pets and kids, explicit limitations, and citations when grounded context exists. Falls back to a deterministic citizen summary if the Groq call fails.",
     tools: ["call_structured", "tone_guardrail", "citation_filter"],
     icon: Newspaper,
     tint: "text-emerald-300",
@@ -105,7 +105,7 @@ const PERSISTENCE = [
     icon: Database,
     title: "agent_memory",
     subtitle: "vectors per water body",
-    body: "text-embedding-004 vectors with a pgvector(768) HNSW cosine index. Next session for the same lake recalls semantically related notes.",
+    body: "Vector memory with a pgvector(768) HNSW cosine index. Next session for the same lake recalls semantically related notes.",
     tint: "text-aqua-300",
   },
 ];
@@ -126,7 +126,7 @@ export function AgentConstellation() {
               Agent surface
             </p>
             <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
-              Five Gemini agents. One audited workflow.
+              Five Groq agents. One audited workflow.
             </h2>
             <p className="mt-4 text-balance text-muted-foreground">
               The deterministic numeric core is wrapped by a small graph of
@@ -157,7 +157,7 @@ export function AgentConstellation() {
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-md border border-aqua-400/30 bg-aqua-400/5 px-2 py-0.5 text-2xs font-medium text-aqua-300">
                 <Sparkles className="size-3" aria-hidden />
-                Gemini thinking mode
+                Groq AI reasoning
               </span>
             </div>
             <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
@@ -197,7 +197,7 @@ export function AgentConstellation() {
         <FadeIn delay={0.35}>
           <div className="mt-10 rounded-xl border border-border bg-card/60 p-5">
             <p className="font-mono text-2xs uppercase tracking-wider text-muted-foreground">
-              Gemini capabilities exercised end-to-end
+              Groq capabilities exercised end-to-end
             </p>
             <ul className="mt-3 flex flex-wrap gap-2 text-xs">
               {[
