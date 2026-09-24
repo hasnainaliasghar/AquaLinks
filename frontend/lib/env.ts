@@ -2,12 +2,12 @@ import { z } from "zod";
 
 function normalizeUrl(val: string | undefined, defaultUrl: string): string {
   if (!val || typeof val !== "string") return defaultUrl;
-  const trimmed = val.trim();
+  let trimmed = val.trim();
   if (!trimmed) return defaultUrl;
   if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-    return `https://${trimmed}`;
+    trimmed = `https://${trimmed}`;
   }
-  return trimmed;
+  return trimmed.replace(/\/+$/, "");
 }
 
 const rawApiUrl = normalizeUrl(process.env.NEXT_PUBLIC_API_URL, "http://localhost:8000");
