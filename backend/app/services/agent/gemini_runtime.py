@@ -69,7 +69,28 @@ def to_json(obj: Any) -> str:
 
 
 def _gemini_schema(model: type[BaseModel]) -> dict[str, Any]:
-    return model.model_json_schema()
+    schema = model.model_json_schema()
+    defs = schema.pop("$defs", {})
+    if not defs:
+        return schema
+
+    def _resolve(node: Any) -> Any:
+        if isinstance(node, dict):
+            if "$ref" in node:
+                ref_key = node["$ref"].split("/")[-1]
+                if ref_key in defs:
+                    resolved = _resolve(defs[ref_key])
+                    merged = dict(resolved)
+                    for k, v in node.items():
+                        if k != "$ref":
+                            merged[k] = _resolve(v)
+                    return merged
+            return {k: _resolve(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [_resolve(item) for item in node]
+        return node
+
+    return _resolve(schema)
 
 
 def _maybe_thinking_config(types_mod: Any, budget: int | None) -> Any | None:
