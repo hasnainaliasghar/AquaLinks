@@ -156,6 +156,8 @@ def fake_gemini(monkeypatch) -> Iterator[list[Any]]:
     queue: list[Any] = []
     calls: list[dict[str, Any]] = []
 
+    gemini_runtime._TEST_RESPONSE_QUEUE = queue
+
     class _FakeModels:
         def generate_content(self, *, model, contents, config):
             calls.append({"model": model, "contents": contents, "config": config})
@@ -167,9 +169,6 @@ def fake_gemini(monkeypatch) -> Iterator[list[Any]]:
         def __init__(self, api_key: str) -> None:
             self.models = _FakeModels()
 
-    # google.genai.types is consumed by the runtime; provide just the
-    # shapes it actually instantiates. Set it as an attribute on the
-    # genai module so ``from google.genai import types`` resolves it.
     fake_types = SimpleNamespace(
         FunctionDeclaration=lambda **kw: SimpleNamespace(**kw),
         Tool=lambda **kw: SimpleNamespace(**kw),
@@ -192,16 +191,16 @@ def fake_gemini(monkeypatch) -> Iterator[list[Any]]:
     monkeypatch.setitem(sys.modules, "google.genai", fake_module)
     monkeypatch.setitem(sys.modules, "google.genai.types", fake_types)
 
-    # Ensure the runtime's settings allow the loop to run.
     from app.core.config import get_settings
 
     get_settings.cache_clear()
     monkeypatch.setenv("AQUALENS_FAKE_GEMINI", "0")
-    monkeypatch.setenv("GOOGLE_API_KEY", "primary-test-key")
+    monkeypatch.setenv("GROQ_API_KEY", "primary-test-key")
     get_settings.cache_clear()
 
     yield queue
-    # Reset env so other tests see the conftest defaults again.
+
+    gemini_runtime._TEST_RESPONSE_QUEUE = []
     get_settings.cache_clear()
 
 

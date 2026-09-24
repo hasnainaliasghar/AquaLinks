@@ -78,7 +78,7 @@ def test_fake_gemini_mode_returns_deterministic_bundle(monkeypatch):
 def test_real_path_parses_json_response(monkeypatch):
     settings = reasoning.get_settings()
     monkeypatch.setattr(settings, "aqualens_fake_gemini", False)
-    monkeypatch.setattr(settings, "google_api_key", "fake-key")
+    monkeypatch.setattr(settings, "groq_api_key", "fake-key")
 
     payload = """
     {
@@ -88,7 +88,7 @@ def test_real_path_parses_json_response(monkeypatch):
     }
     """
 
-    with patch.object(reasoning, "_call_gemini", return_value=payload) as call:
+    with patch.object(reasoning, "_call_groq", return_value=payload) as call:
         bundle = reasoning.generate_reasoning(
             score=_score(),
             indices=_aggregates(),
@@ -103,14 +103,14 @@ def test_real_path_parses_json_response(monkeypatch):
 def test_real_path_retries_once_on_invalid_json(monkeypatch):
     settings = reasoning.get_settings()
     monkeypatch.setattr(settings, "aqualens_fake_gemini", False)
-    monkeypatch.setattr(settings, "google_api_key", "fake-key")
+    monkeypatch.setattr(settings, "groq_api_key", "fake-key")
 
     good_payload = (
         '{"recommendation": "Investigate", "reasoning": "Both NDCI and NDTI elevated.",'
         ' "limitations": "Advisory only — confirm with field sampling."}'
     )
     side_effect = ["not json at all", good_payload]
-    with patch.object(reasoning, "_call_gemini", side_effect=side_effect) as call:
+    with patch.object(reasoning, "_call_groq", side_effect=side_effect) as call:
         bundle = reasoning.generate_reasoning(
             score=_score(),
             indices=_aggregates(),
@@ -125,9 +125,9 @@ def test_real_path_retries_once_on_invalid_json(monkeypatch):
 def test_missing_api_key_raises_configuration_error(monkeypatch):
     settings = reasoning.get_settings()
     monkeypatch.setattr(settings, "aqualens_fake_gemini", False)
-    monkeypatch.setattr(settings, "google_api_key", None)
-    monkeypatch.setattr(settings, "google_api_key_fallback", None)
-    monkeypatch.setattr(settings, "google_api_key_fallback_2", None)
+    monkeypatch.setattr(settings, "groq_api_key", None)
+    monkeypatch.setattr(settings, "groq_api_key_fallback", None)
+    monkeypatch.setattr(settings, "groq_api_key_fallback_2", None)
     with pytest.raises(reasoning.ConfigurationError):
         reasoning.generate_reasoning(
             score=_score(),
@@ -140,9 +140,9 @@ def test_missing_api_key_raises_configuration_error(monkeypatch):
 def test_quota_error_falls_over_to_fallback_key(monkeypatch):
     settings = reasoning.get_settings()
     monkeypatch.setattr(settings, "aqualens_fake_gemini", False)
-    monkeypatch.setattr(settings, "google_api_key", "primary-key")
-    monkeypatch.setattr(settings, "google_api_key_fallback", "fallback-key")
-    monkeypatch.setattr(settings, "google_api_key_fallback_2", None)
+    monkeypatch.setattr(settings, "groq_api_key", "primary-key")
+    monkeypatch.setattr(settings, "groq_api_key_fallback", "fallback-key")
+    monkeypatch.setattr(settings, "groq_api_key_fallback_2", None)
 
     good_payload = (
         '{"recommendation": "Sample within seven days.",'
@@ -155,7 +155,7 @@ def test_quota_error_falls_over_to_fallback_key(monkeypatch):
             raise reasoning.QuotaExceededError("429 RESOURCE_EXHAUSTED: quota exceeded for model")
         return good_payload
 
-    with patch.object(reasoning, "_call_gemini", side_effect=fake_call) as call:
+    with patch.object(reasoning, "_call_groq", side_effect=fake_call) as call:
         bundle = reasoning.generate_reasoning(
             score=_score(),
             indices=_aggregates(),
@@ -173,9 +173,9 @@ def test_quota_error_falls_over_to_fallback_key(monkeypatch):
 def test_quota_error_uses_second_fallback_key(monkeypatch):
     settings = reasoning.get_settings()
     monkeypatch.setattr(settings, "aqualens_fake_gemini", False)
-    monkeypatch.setattr(settings, "google_api_key", "primary-key")
-    monkeypatch.setattr(settings, "google_api_key_fallback", "fallback-key-1")
-    monkeypatch.setattr(settings, "google_api_key_fallback_2", "fallback-key-2")
+    monkeypatch.setattr(settings, "groq_api_key", "primary-key")
+    monkeypatch.setattr(settings, "groq_api_key_fallback", "fallback-key-1")
+    monkeypatch.setattr(settings, "groq_api_key_fallback_2", "fallback-key-2")
 
     good_payload = (
         '{"recommendation": "Sample within seven days.",'
@@ -188,7 +188,7 @@ def test_quota_error_uses_second_fallback_key(monkeypatch):
             raise reasoning.QuotaExceededError("429 RESOURCE_EXHAUSTED: quota exceeded for model")
         return good_payload
 
-    with patch.object(reasoning, "_call_gemini", side_effect=fake_call) as call:
+    with patch.object(reasoning, "_call_groq", side_effect=fake_call) as call:
         bundle = reasoning.generate_reasoning(
             score=_score(),
             indices=_aggregates(),

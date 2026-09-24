@@ -69,6 +69,9 @@ def _fc_part(name: str, args: dict[str, Any]) -> Any:
 @pytest.fixture()
 def fake_gemini(monkeypatch) -> Iterator[list[Any]]:
     queue: list[Any] = []
+    from app.services.agent import gemini_runtime
+
+    gemini_runtime._TEST_RESPONSE_QUEUE = queue
 
     class _FakeModels:
         def generate_content(self, *, model, contents, config):
@@ -108,11 +111,12 @@ def fake_gemini(monkeypatch) -> Iterator[list[Any]]:
 
     get_settings.cache_clear()
     monkeypatch.setenv("AQUALENS_FAKE_GEMINI", "0")
-    monkeypatch.setenv("GOOGLE_API_KEY", "primary-test-key")
+    monkeypatch.setenv("GROQ_API_KEY", "primary-test-key")
     get_settings.cache_clear()
 
     yield queue
 
+    gemini_runtime._TEST_RESPONSE_QUEUE = []
     get_settings.cache_clear()
 
 

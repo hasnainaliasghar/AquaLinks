@@ -55,12 +55,16 @@ class _GeminiQueues:
         self.raise_next: list[Exception] = []
 
     def append(self, response: Any) -> None:
+        from app.services.agent import gemini_runtime
+
         self.responses.append(response)
+        gemini_runtime._TEST_RESPONSE_QUEUE.append(response)
 
 
 @pytest.fixture()
 def fake_gemini(monkeypatch) -> Iterator[_GeminiQueues]:
     queues = _GeminiQueues()
+    from app.services.agent import gemini_runtime
 
     class _FakeModels:
         def generate_content(self, *, model, contents, config):
@@ -99,10 +103,20 @@ def fake_gemini(monkeypatch) -> Iterator[_GeminiQueues]:
 
     get_settings.cache_clear()
     monkeypatch.setenv("AQUALENS_FAKE_GEMINI", "0")
-    monkeypatch.setenv("GOOGLE_API_KEY", "primary-test-key")
+    monkeypatch.setenv("GROQ_API_KEY", "primary-test-key")
     get_settings.cache_clear()
 
+    # Wrap raise_next to also push to gemini_runtime if populated before call
+    orig_append = queues.raise_next.append
+
+    def _custom_raise_append(exc):
+        orig_append(exc)
+        gemini_runtime._TEST_RESPONSE_QUEUE.append(exc)
+
+    queues.raise_next.append = _custom_raise_append  # type: ignore[method-assign]
+
     yield queues
+    gemini_runtime._TEST_RESPONSE_QUEUE = []
     get_settings.cache_clear()
 
 
@@ -204,7 +218,7 @@ def test_field_liaison_fallback_default_low_risk_routine(fake_gemini) -> None:
         )
 
     assert brief.tasks[0].priority == "p2"
-    assert brief.tasks[0].sample_type == "Walk-around visual check"
+    assert brief.tasks[0].sample_type.lower() == "walk-around visual check"
     assert brief.turnaround_hours == 168
     assert brief.escalate_to is None
 

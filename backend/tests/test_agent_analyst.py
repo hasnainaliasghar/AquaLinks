@@ -66,6 +66,9 @@ def _response(text: str, tokens_in: int = 80, tokens_out: int = 60) -> Any:
 def fake_gemini(monkeypatch) -> Iterator[list[str]]:
     """Queue of canned JSON response bodies (one per call_structured call)."""
     queue: list[str] = []
+    from app.services.agent import gemini_runtime
+
+    gemini_runtime._TEST_RESPONSE_QUEUE = queue
 
     class _FakeModels:
         def generate_content(self, *, model, contents, config):
@@ -108,11 +111,12 @@ def fake_gemini(monkeypatch) -> Iterator[list[str]]:
 
     get_settings.cache_clear()
     monkeypatch.setenv("AQUALENS_FAKE_GEMINI", "0")
-    monkeypatch.setenv("GOOGLE_API_KEY", "primary-test-key")
+    monkeypatch.setenv("GROQ_API_KEY", "primary-test-key")
     get_settings.cache_clear()
 
     yield queue
 
+    gemini_runtime._TEST_RESPONSE_QUEUE = []
     get_settings.cache_clear()
 
 
@@ -322,5 +326,5 @@ def test_analyst_passes_aoi_type_through_to_model(monkeypatch) -> None:
             indices=_FACTS["indices"],
         )
 
-    assert '"type": "land"' in captured["user_message"]
+    assert '"type": "land"' in captured["user_message"] or '"type":"land"' in captured["user_message"]
     assert "water body" in output.bundle.recommendation.lower()

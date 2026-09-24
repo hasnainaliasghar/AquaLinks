@@ -12,15 +12,11 @@ from collections.abc import Iterator
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-# Configure environment before anything else imports settings.
-os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("AQUALENS_USE_SAMPLE_PROVIDER", "1")
-os.environ.setdefault("AQUALENS_FAKE_GEMINI", "1")
-# Default the test suite to the deterministic single-call reasoning
-# path so the existing tests stay meaningful. Agent-specific tests opt
-# in to the multi-agent flow per-test.
-os.environ.setdefault("AQUALENS_AGENTIC_MODE", "0")
-os.environ.setdefault("GOOGLE_API_KEY", "test-key")
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["AQUALENS_USE_SAMPLE_PROVIDER"] = "1"
+os.environ["AQUALENS_FAKE_GEMINI"] = "1"
+os.environ["AQUALENS_AGENTIC_MODE"] = "0"
+os.environ["GROQ_API_KEY"] = "test-key"
 
 import pytest
 from fastapi.testclient import TestClient

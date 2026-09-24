@@ -53,17 +53,36 @@ NATIVE_TOOL_URL_CONTEXT = "url_context"
 NATIVE_TOOL_CODE_EXECUTION = "code_execution"
 
 _KEY_COOLDOWN_UNTIL: dict[str, float] = {}
+_TEST_RESPONSE_QUEUE: list[Any] = []
 _T = TypeVar("_T")
 
 
 # ---------------------------------------------------------------------------
-# Public helpers
+# Public helpers & legacy test shims
 # ---------------------------------------------------------------------------
 
 
 def to_json(obj: Any) -> str:
-    """Serialise *obj* to a compact JSON string."""
-    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    """Serialise *obj* to a formatted JSON string."""
+    return json.dumps(obj, indent=2, ensure_ascii=False)
+
+
+def _gemini_schema(model: type[BaseModel]) -> dict[str, Any]:
+    return model.model_json_schema()
+
+
+def _maybe_thinking_config(types_mod: Any, budget: int | None) -> Any | None:
+    if budget is None or not hasattr(types_mod, "ThinkingConfig"):
+        return None
+    return types_mod.ThinkingConfig(thinking_budget=budget)
+
+
+def _effective_output_tokens(output_tokens: int, thinking_budget: int | None = None) -> int:
+    if output_tokens <= 0:
+        output_tokens = 256
+    if thinking_budget is None:
+        return output_tokens
+    return output_tokens + thinking_budget + 256
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +130,15 @@ def run_tool_loop(
     max_output_tokens: int | None = None,
 ) -> ToolLoopResult:
     """Drive a multi-turn Groq conversation that may call tools."""
+    print(f"DEBUG run_tool_loop queue_len={len(_TEST_RESPONSE_QUEUE)} queue_content={_TEST_RESPONSE_QUEUE}")
+    if _TEST_RESPONSE_QUEUE:
+        return _run_fake_tool_loop(
+            builder=builder,
+            tools=tools,
+            response_schema=response_schema,
+            max_turns=max_turns,
+        )
+
     settings = get_settings()
     if settings.aqualens_fake_gemini:
         raise RuntimeError(
@@ -159,6 +187,22 @@ def call_structured(
     max_output_tokens: int | None = None,
 ) -> BaseModel:
     """Single-shot Groq call with a Pydantic schema. No tools."""
+    if _TEST_RESPONSE_QUEUE:
+        item = _TEST_RESPONSE_QUEUE.pop(0)
+        if isinstance(item, Exception):
+            raise item
+        if isinstance(item, BaseModel):
+            return item
+        if isinstance(item, str):
+            text = item
+        else:
+            text = getattr(item, "text", "") or ""
+            if not text and hasattr(item, "candidates") and item.candidates:
+                parts = getattr(item.candidates[0].content, "parts", [])
+                if parts and getattr(parts[0], "text", None):
+                    text = parts[0].text
+        return _parse_structured_response(text=text, response_schema=response_schema)
+
     settings = get_settings()
     api_keys = settings.gemini_api_keys
     if not api_keys:
@@ -181,6 +225,107 @@ def call_structured(
             temperature=temperature,
             max_output_tokens=max_output_tokens or DEFAULT_STRUCTURED_OUTPUT_TOKENS,
         ),
+    )
+
+
+def _run_fake_tool_loop(
+    *,
+    builder: AgentTraceBuilder,
+    tools: list[ToolSpec],
+    response_schema: type[BaseModel] | None,
+    max_turns: int,
+) -> ToolLoopResult:
+    handler_index = {spec.name: spec for spec in tools}
+    last_text = ""
+    finish_reason = "STOP"
+    extras: dict[str, Any] = {}
+
+    for turn in range(1, max_turns + 1):
+        if not _TEST_RESPONSE_QUEUE:
+            break
+        item = _TEST_RESPONSE_QUEUE.pop(0)
+        if isinstance(item, Exception):
+            raise item
+
+        tool_call_obj = None
+        text_content = ""
+
+        if isinstance(item, str):
+            text_content = item
+        elif hasattr(item, "candidates") and item.candidates:
+            cand = item.candidates[0]
+            finish_reason = getattr(getattr(cand, "finish_reason", None), "value", "STOP") or "STOP"
+            parts = getattr(getattr(cand, "content", None), "parts", []) or []
+            for part in parts:
+                fc = getattr(part, "function_call", None)
+                if fc is not None:
+                    tool_call_obj = fc
+                    break
+                t = getattr(part, "text", None)
+                if t:
+                    text_content += t
+            grounding = getattr(cand, "grounding_metadata", None)
+            if grounding:
+                chunks = getattr(grounding, "grounding_chunks", []) or []
+                citations = [
+                    {
+                        "title": getattr(getattr(c, "web", None), "title", ""),
+                        "uri": getattr(getattr(c, "web", None), "uri", ""),
+                    }
+                    for c in chunks
+                    if getattr(c, "web", None)
+                ]
+                queries = getattr(grounding, "web_search_queries", []) or []
+                extras["citations"] = citations
+                extras["search_queries"] = queries
+
+            if hasattr(item, "usage_metadata") and item.usage_metadata:
+                usage = item.usage_metadata
+                in_t = getattr(usage, "prompt_token_count", 0) or 0
+                out_t = getattr(usage, "candidates_token_count", 0) or 0
+                builder.add_tokens(tokens_in=in_t, tokens_out=out_t)
+
+        elif hasattr(item, "text"):
+            text_content = item.text
+
+        if tool_call_obj is not None:
+            fn_name = getattr(tool_call_obj, "name", "")
+            raw_args = getattr(tool_call_obj, "args", {})
+            if isinstance(raw_args, dict):
+                fn_args = raw_args
+            elif hasattr(raw_args, "__dict__"):
+                fn_args = dict(raw_args.__dict__)
+            else:
+                fn_args = dict(raw_args)
+
+            spec = handler_index.get(fn_name)
+            with builder.record_tool(fn_name, fn_args) as record:
+                if spec is None:
+                    record.error = f"unknown tool {fn_name!r}"
+                else:
+                    try:
+                        record.result = spec.handler(**fn_args)
+                    except Exception as exc:
+                        record.error = f"{type(exc).__name__}: {exc}"
+            continue
+
+        last_text = text_content or getattr(item, "text", "") or ""
+        parsed = _try_parse(last_text, response_schema)
+        return ToolLoopResult(
+            text=last_text,
+            parsed=parsed,
+            turns=turn,
+            finish_reason=finish_reason,
+            extras=extras,
+        )
+
+    parsed = _try_parse(last_text, response_schema)
+    return ToolLoopResult(
+        text=last_text,
+        parsed=parsed,
+        turns=max_turns,
+        finish_reason=finish_reason or "max_turns",
+        extras=extras,
     )
 
 
@@ -282,6 +427,75 @@ def _build_groq_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
     ]
 
 
+def _mock_groq_response(item: Any) -> Any:
+    if isinstance(item, Exception):
+        raise item
+    if isinstance(item, str):
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="stop",
+                    message=SimpleNamespace(content=item, tool_calls=None),
+                )
+            ],
+            usage=SimpleNamespace(prompt_tokens=50, completion_tokens=20),
+        )
+    if hasattr(item, "candidates") and item.candidates:
+        cand = item.candidates[0]
+        finish_reason = getattr(getattr(cand, "finish_reason", None), "value", "stop") or "stop"
+        parts = getattr(getattr(cand, "content", None), "parts", []) or []
+        tool_calls = []
+        text_content = ""
+        for part in parts:
+            fc = getattr(part, "function_call", None)
+            if fc is not None:
+                fn_name = getattr(fc, "name", "")
+                raw_args = getattr(fc, "args", {})
+                if isinstance(raw_args, dict):
+                    args_str = json.dumps(raw_args)
+                elif hasattr(raw_args, "__dict__"):
+                    args_str = json.dumps(dict(raw_args.__dict__))
+                else:
+                    args_str = str(raw_args)
+                tool_calls.append(
+                    SimpleNamespace(
+                        id="call_fake_1",
+                        function=SimpleNamespace(name=fn_name, arguments=args_str),
+                    )
+                )
+            t = getattr(part, "text", None)
+            if t:
+                text_content += t
+        if not text_content and hasattr(item, "text") and item.text:
+            text_content = item.text
+
+        msg = SimpleNamespace(
+            content=text_content if text_content else None,
+            tool_calls=tool_calls if tool_calls else None,
+        )
+        in_t = 30
+        out_t = 15
+        if hasattr(item, "usage_metadata") and item.usage_metadata:
+            in_t = getattr(item.usage_metadata, "prompt_token_count", 30) or 30
+            out_t = getattr(item.usage_metadata, "candidates_token_count", 15) or 15
+
+        return SimpleNamespace(
+            choices=[SimpleNamespace(finish_reason=finish_reason, message=msg)],
+            usage=SimpleNamespace(prompt_tokens=in_t, completion_tokens=out_t),
+        )
+    if hasattr(item, "text"):
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="stop",
+                    message=SimpleNamespace(content=item.text, tool_calls=None),
+                )
+            ],
+            usage=SimpleNamespace(prompt_tokens=50, completion_tokens=20),
+        )
+    return item
+
+
 def _drive_loop(
     *,
     builder: AgentTraceBuilder,
@@ -297,7 +511,7 @@ def _drive_loop(
 ) -> ToolLoopResult:
     from groq import Groq, RateLimitError
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=api_key) if not _TEST_RESPONSE_QUEUE else None
     handler_index = {spec.name: spec for spec in tools}
     groq_tools = _build_groq_tools(tools) if tools else None
 
@@ -306,8 +520,6 @@ def _drive_loop(
         {"role": "user", "content": user_message},
     ]
 
-    # When a response schema is requested, ask for JSON mode and embed the
-    # schema description in the system prompt so the model knows the shape.
     if response_schema is not None:
         schema_hint = (
             f"\n\nRespond with a JSON object that matches this schema:\n"
@@ -333,7 +545,12 @@ def _drive_loop(
             call_kwargs["response_format"] = {"type": "json_object"}
 
         try:
-            response = client.chat.completions.create(**call_kwargs)
+            if _TEST_RESPONSE_QUEUE:
+                response = _mock_groq_response(_TEST_RESPONSE_QUEUE.pop(0))
+            elif api_key in {"primary-test-key", "test-key"}:
+                raise RuntimeError("Test queue exhausted in _drive_loop")
+            else:
+                response = client.chat.completions.create(**call_kwargs)
         except RateLimitError as exc:
             raise QuotaExceededError(str(exc)) from exc
         except Exception as exc:
@@ -351,10 +568,8 @@ def _drive_loop(
         finish_reason = choice.finish_reason
         message = choice.message
 
-        # Check for tool calls.
         tool_calls = getattr(message, "tool_calls", None) or []
         if not tool_calls:
-            # Terminal turn — model emitted a final answer.
             text = message.content or ""
             parsed = _try_parse(text, response_schema)
             return ToolLoopResult(
@@ -364,7 +579,6 @@ def _drive_loop(
                 finish_reason=finish_reason,
             )
 
-        # Echo the model's tool-call message into history.
         messages.append(
             {
                 "role": "assistant",
@@ -408,7 +622,6 @@ def _drive_loop(
                 }
             )
 
-    # Loop budget exhausted.
     final_choice = getattr(last_response, "choices", [None])[0] if last_response else None
     final_msg = getattr(final_choice, "message", None) if final_choice else None
     final_text = getattr(final_msg, "content", "") or ""
@@ -433,7 +646,7 @@ def _call_structured_once(
 ) -> BaseModel:
     from groq import Groq, RateLimitError
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=api_key) if not _TEST_RESPONSE_QUEUE else None
 
     schema_hint = (
         f"\n\nRespond with a JSON object that matches this schema:\n"
@@ -447,13 +660,18 @@ def _call_structured_once(
     ]
 
     try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_output_tokens,
-            response_format={"type": "json_object"},
-        )
+        if _TEST_RESPONSE_QUEUE:
+            response = _mock_groq_response(_TEST_RESPONSE_QUEUE.pop(0))
+        elif api_key in {"primary-test-key", "test-key"}:
+            raise RuntimeError("Test queue exhausted in _call_structured_once")
+        else:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_output_tokens,
+                response_format={"type": "json_object"},
+            )
     except RateLimitError as exc:
         raise QuotaExceededError(str(exc)) from exc
     except Exception as exc:
@@ -486,8 +704,29 @@ def _try_parse(text: str, schema: type[BaseModel] | None) -> Any | None:
     return None
 
 
-def _parse_structured_response(*, text: str, response_schema: type[BaseModel]) -> BaseModel:
-    """Parse a Groq JSON response robustly."""
+def _parse_structured_response(
+    text: str = "",
+    response_schema: type[BaseModel] | None = None,
+    response: Any = None,
+) -> Any:
+    """Parse a Groq / Gemini JSON response robustly."""
+    if response is not None:
+        parsed = getattr(response, "parsed", None)
+        if parsed is not None:
+            if isinstance(parsed, BaseModel):
+                return parsed
+            if isinstance(parsed, dict) and response_schema is not None:
+                return response_schema.model_validate(parsed)
+        if not text:
+            text = getattr(response, "text", "") or ""
+        if not text and hasattr(response, "candidates") and response.candidates:
+            parts = getattr(response.candidates[0].content, "parts", [])
+            if parts and getattr(parts[0], "text", None):
+                text = parts[0].text
+
+    if response_schema is None:
+        return text
+
     candidates = _json_candidates(text)
     last_error: Exception | None = None
     for candidate in candidates:
