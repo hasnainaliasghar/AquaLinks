@@ -326,5 +326,7 @@ def test_analyst_passes_aoi_type_through_to_model(monkeypatch) -> None:
             indices=_FACTS["indices"],
         )
 
-    assert '"type": "land"' in captured["user_message"] or '"type":"land"' in captured["user_message"]
+    assert (
+        '"type": "land"' in captured["user_message"] or '"type":"land"' in captured["user_message"]
+    )
     assert "water body" in output.bundle.recommendation.lower()

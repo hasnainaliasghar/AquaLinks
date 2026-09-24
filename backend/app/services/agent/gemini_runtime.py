@@ -131,7 +131,9 @@ def run_tool_loop(
     max_output_tokens: int | None = None,
 ) -> ToolLoopResult:
     """Drive a multi-turn Groq conversation that may call tools."""
-    print(f"DEBUG run_tool_loop queue_len={len(_TEST_RESPONSE_QUEUE)} queue_content={_TEST_RESPONSE_QUEUE}")
+    print(
+        f"DEBUG run_tool_loop queue_len={len(_TEST_RESPONSE_QUEUE)} queue_content={_TEST_RESPONSE_QUEUE}"
+    )
     if _TEST_RESPONSE_QUEUE:
         return _run_fake_tool_loop(
             builder=builder,
