@@ -14,10 +14,84 @@ import { cn } from "@/lib/utils";
 
 export type Basemap = "street" | "satellite" | "terrain";
 
-const STYLE_URL: Record<Basemap, string> = {
-  street: "/map-styles/basemap-street.json",
-  satellite: "/map-styles/basemap-satellite.json",
-  terrain: "/map-styles/basemap-terrain.json",
+const STREET_STYLE: StyleSpecification = {
+  version: 8,
+  name: "AquaLens Street",
+  sources: {
+    street: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 19,
+      attribution: "Tiles © Esri — Source: USGS, Esri, NAVTEQ, OpenStreetMap contributors",
+    },
+  },
+  layers: [
+    { id: "background", type: "background", paint: { "background-color": "#f4efe9" } },
+    { id: "street", type: "raster", source: "street" },
+  ],
+};
+
+const SATELLITE_STYLE: StyleSpecification = {
+  version: 8,
+  name: "AquaLens Satellite",
+  sources: {
+    imagery: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 19,
+      attribution: "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics",
+    },
+    labels: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 19,
+      attribution: "Tiles © Esri",
+    },
+  },
+  layers: [
+    { id: "background", type: "background", paint: { "background-color": "#0b1024" } },
+    { id: "imagery", type: "raster", source: "imagery" },
+    { id: "labels", type: "raster", source: "labels", paint: { "raster-opacity": 0.85 } },
+  ],
+};
+
+const TERRAIN_STYLE: StyleSpecification = {
+  version: 8,
+  name: "AquaLens Terrain",
+  sources: {
+    topo: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 19,
+      attribution: "Tiles © Esri",
+    },
+  },
+  layers: [
+    { id: "background", type: "background", paint: { "background-color": "#e6f0e7" } },
+    { id: "topo", type: "raster", source: "topo" },
+  ],
+};
+
+const STYLES: Record<Basemap, StyleSpecification> = {
+  street: STREET_STYLE,
+  satellite: SATELLITE_STYLE,
+  terrain: TERRAIN_STYLE,
 };
 
 export type MapHandle = {
@@ -52,13 +126,23 @@ export function Map({
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
+    const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY;
     const map = new maplibregl.Map({
       container: ref.current,
-      style: STYLE_URL[basemap] as unknown as StyleSpecification,
+      style: STYLES[basemap],
       center: initialCenter as LngLatLike,
       zoom: initialZoom,
       interactive,
       attributionControl: false,
+      transformRequest: (url) => {
+        if (cartoApiKey && (url.includes("cartocdn.com") || url.includes("carto.com"))) {
+          if (!url.includes("api_key=") && !url.includes("key=")) {
+            const sep = url.includes("?") ? "&" : "?";
+            return { url: `${url}${sep}api_key=${cartoApiKey}` };
+          }
+        }
+        return { url };
+      },
     });
     mapRef.current = map;
 
@@ -68,22 +152,30 @@ export function Map({
     }
 
     map.once("load", () => {
-      // The container is sometimes still settling when the dynamic chunk
-      // mounts inside a grid/flex layout. Forcing a resize after load and
-      // observing the container guarantees a non-zero canvas.
       map.resize();
       onReady?.(map);
     });
+
+    const timer1 = setTimeout(() => map.resize(), 100);
+    const timer2 = setTimeout(() => map.resize(), 500);
+
+    const handleResize = () => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+      }
+    };
 
     const handleClick = (event: MapMouseEvent) => {
       clickHandlerRef.current?.({ lng: event.lngLat.lng, lat: event.lngLat.lat });
     };
     map.on("click", handleClick);
 
-    const observer = new ResizeObserver(() => map.resize());
+    const observer = new ResizeObserver(() => handleResize());
     observer.observe(ref.current);
 
     return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       observer.disconnect();
       map.off("click", handleClick);
       onReady?.(null);
@@ -97,14 +189,14 @@ export function Map({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    map.setStyle(STYLE_URL[basemap] as unknown as StyleSpecification, { diff: false });
+    map.setStyle(STYLES[basemap], { diff: false });
   }, [basemap]);
 
   return (
-    <div className={cn("relative h-full w-full overflow-hidden", className)}>
+    <div className={cn("relative h-full w-full min-h-[420px] overflow-hidden", className)}>
       <div
         ref={ref}
-        className="absolute inset-0 h-full w-full"
+        className="h-full w-full min-h-[420px]"
         aria-label="Interactive map"
         role="region"
       />

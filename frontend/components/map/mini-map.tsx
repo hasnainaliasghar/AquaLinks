@@ -16,13 +16,12 @@ const INLINE_STYLE: StyleSpecification = {
     street: {
       type: "raster",
       tiles: [
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
       ],
       tileSize: 256,
       minzoom: 0,
       maxzoom: 19,
-      attribution:
-        "Tiles © Esri — Source: USGS, Esri, TANA, DeLorme, HERE, NAVTEQ, OpenStreetMap",
+      attribution: "Tiles © Esri — Source: USGS, Esri, OpenStreetMap",
     },
   },
   glyphs: "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
@@ -45,6 +44,7 @@ export function MiniMap({
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
 
+    const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY;
     const map = new maplibregl.Map({
       container: ref.current,
       style: INLINE_STYLE,
@@ -52,6 +52,19 @@ export function MiniMap({
       zoom: 2,
       interactive: false,
       attributionControl: false,
+      transformRequest: (url) => {
+        if (cartoApiKey && (url.includes("cartocdn.com") || url.includes("carto.com"))) {
+          let reqUrl = url;
+          if (!reqUrl.includes("key=")) {
+            reqUrl += `${reqUrl.includes("?") ? "&" : "?"}key=${cartoApiKey}`;
+          }
+          if (!reqUrl.includes("api_key=")) {
+            reqUrl += `${reqUrl.includes("?") ? "&" : "?"}api_key=${cartoApiKey}`;
+          }
+          return { url: reqUrl };
+        }
+        return { url };
+      },
     });
     mapRef.current = map;
 

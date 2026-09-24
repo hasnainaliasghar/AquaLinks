@@ -60,6 +60,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_CARTO_API_KEY: ${NEXT_PUBLIC_CARTO_API_KEY:-}
     volumes:
       - ./frontend:/app
       - aqualens_node_modules:/app/node_modules

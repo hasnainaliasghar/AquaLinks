@@ -185,7 +185,7 @@ export default function MonitorPage() {
 
   return (
     <div className="grid h-screen min-h-[640px] grid-rows-[1fr_auto] gap-0 lg:grid-cols-[1fr_400px] lg:grid-rows-1">
-      <div className="relative min-h-[420px] overflow-hidden border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r">
+      <div className="relative h-full w-full min-h-[420px] overflow-hidden border-b border-border lg:border-b-0 lg:border-r">
         <Map
           basemap={basemap}
           onReady={setMap}
