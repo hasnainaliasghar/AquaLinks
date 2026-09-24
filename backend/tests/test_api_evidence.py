@@ -64,5 +64,5 @@ def test_report_download_returns_pdf(client: TestClient, sample_polygon):
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/pdf")
     content_disposition = response.headers.get("content-disposition", "")
-    assert re.search(r'filename="aqualens-analysis-\d{8}\.pdf"', content_disposition)
+    assert re.search(r'filename="aqua(lens|links)-analysis-\d{8}\.pdf"', content_disposition)
     assert response.content.startswith(b"%PDF")

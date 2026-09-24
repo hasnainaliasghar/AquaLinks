@@ -106,15 +106,6 @@ def fake_gemini(monkeypatch) -> Iterator[_GeminiQueues]:
     monkeypatch.setenv("GROQ_API_KEY", "primary-test-key")
     get_settings.cache_clear()
 
-    # Wrap raise_next to also push to gemini_runtime if populated before call
-    orig_append = queues.raise_next.append
-
-    def _custom_raise_append(exc):
-        orig_append(exc)
-        gemini_runtime._TEST_RESPONSE_QUEUE.append(exc)
-
-    queues.raise_next.append = _custom_raise_append  # type: ignore[method-assign]
-
     yield queues
     gemini_runtime._TEST_RESPONSE_QUEUE = []
     get_settings.cache_clear()
