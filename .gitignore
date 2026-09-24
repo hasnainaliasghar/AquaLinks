@@ -74,3 +74,5 @@ backend/backend/data/reports/
 # Local-only docs (not for distribution)
 docs/prd.md
 .vercel
+.agents/
+skills-lock.json
