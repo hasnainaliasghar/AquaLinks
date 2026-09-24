@@ -19,6 +19,7 @@ half of the product's over-time continuity model.
 
 from __future__ import annotations
 
+import json
 from importlib.resources import files
 from typing import Any
 from uuid import UUID
@@ -278,7 +279,7 @@ def _tool_specs(*, db: Session, water_body_id: UUID, source_session_id: UUID) ->
                     },
                     "max_results": {
                         "type": "integer",
-                        "description": "Number of results to return (1–8, default 5).",
+                        "description": "Number of results to return (1-8, default 5).",
                     },
                 },
                 "required": ["query"],

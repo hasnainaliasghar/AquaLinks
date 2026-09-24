@@ -295,8 +295,7 @@ def _drive_loop(
     temperature: float,
     max_output_tokens: int,
 ) -> ToolLoopResult:
-    from groq import Groq
-    from groq import RateLimitError
+    from groq import Groq, RateLimitError
 
     client = Groq(api_key=api_key)
     handler_index = {spec.name: spec for spec in tools}
@@ -366,14 +365,20 @@ def _drive_loop(
             )
 
         # Echo the model's tool-call message into history.
-        messages.append({"role": "assistant", "content": message.content, "tool_calls": [
+        messages.append(
             {
-                "id": tc.id,
-                "type": "function",
-                "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                "role": "assistant",
+                "content": message.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                    }
+                    for tc in tool_calls
+                ],
             }
-            for tc in tool_calls
-        ]})
+        )
 
         for tc in tool_calls:
             fn_name = tc.function.name
@@ -395,18 +400,18 @@ def _drive_loop(
                         payload = {"error": record.error}
                 record.result = payload
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tc.id,
-                "content": json.dumps(payload, ensure_ascii=False),
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(payload, ensure_ascii=False),
+                }
+            )
 
     # Loop budget exhausted.
-    final_text = getattr(last_response, "choices", [{}])[0]
-    if hasattr(final_text, "message"):
-        final_text = final_text.message.content or ""
-    else:
-        final_text = ""
+    final_choice = getattr(last_response, "choices", [None])[0] if last_response else None
+    final_msg = getattr(final_choice, "message", None) if final_choice else None
+    final_text = getattr(final_msg, "content", "") or ""
     return ToolLoopResult(
         text=final_text,
         parsed=_try_parse(final_text, response_schema),
@@ -426,8 +431,7 @@ def _call_structured_once(
     temperature: float,
     max_output_tokens: int,
 ) -> BaseModel:
-    from groq import Groq
-    from groq import RateLimitError
+    from groq import Groq, RateLimitError
 
     client = Groq(api_key=api_key)
 

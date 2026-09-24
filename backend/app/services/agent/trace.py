@@ -54,7 +54,12 @@ def _friendly_error(exc: BaseException) -> str:
             "The LLM rejected the response schema for this step. "
             "The deterministic fallback was used instead."
         )
-    if "resource_exhausted" in lowered or "quota" in lowered or "429" in lowered or "rate_limit" in lowered:
+    if (
+        "resource_exhausted" in lowered
+        or "quota" in lowered
+        or "429" in lowered
+        or "rate_limit" in lowered
+    ):
         return (
             "The LLM API quota was exhausted for this key. "
             "The runtime rolled over to the next key (or fallback) where possible."

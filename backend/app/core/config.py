@@ -105,7 +105,7 @@ class Settings(BaseSettings):
 
     # Alias so existing code that reads settings.gemini_model still works.
     @property
-    def gemini_model(self) -> str:  # noqa: D401
+    def gemini_model(self) -> str:
         """Alias for groq_model (backwards compat with agent/orchestrator code)."""
         return self.groq_model
 
@@ -143,11 +143,11 @@ class Settings(BaseSettings):
     # Quota handling — kept as groq_* but exposed via the old gemini_* property names
     # so the runtime doesn't need touching.
     @property
-    def gemini_quota_retry_passes(self) -> int:  # noqa: D401
+    def gemini_quota_retry_passes(self) -> int:
         return self.groq_quota_retry_passes
 
     @property
-    def gemini_quota_cooldown_seconds(self) -> float:  # noqa: D401
+    def gemini_quota_cooldown_seconds(self) -> float:
         return self.groq_quota_cooldown_seconds
 
     @field_validator("upload_dir", "report_dir", mode="before")

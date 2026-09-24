@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 from collections.abc import Iterable
 from datetime import UTC, datetime
 from importlib.resources import files

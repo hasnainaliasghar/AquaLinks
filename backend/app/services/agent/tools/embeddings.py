@@ -15,7 +15,6 @@ import hashlib
 import math
 from typing import TYPE_CHECKING
 
-from app.core.config import get_settings
 from app.core.logging import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -55,7 +54,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 # ----------------------------------------------------------------------
 
 
-def _real_embedding(text: str, api_key: str, model: str) -> list[float]:  # noqa: ARG001
+def _real_embedding(text: str, api_key: str, model: str) -> list[float]:
     """Not used: Groq has no embeddings API.
 
     Kept as a stub so diffs stay minimal when restoring a real provider.
