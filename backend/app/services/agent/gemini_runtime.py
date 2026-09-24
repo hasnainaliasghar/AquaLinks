@@ -31,6 +31,7 @@ import json
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any, TypeVar
 
 from pydantic import BaseModel
