@@ -3,8 +3,16 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const cwd = process.cwd();
-const envDirectory = path.basename(cwd) === "frontend" ? path.resolve(cwd, "..") : cwd;
-loadEnvConfig(envDirectory);
+// In local dev (docker / bare node): cwd is `frontend/`, so we look one
+// level up for the shared root .env.  On Vercel env vars are injected
+// directly — the parent directory doesn't exist, so we just skip loading.
+const envDirectory =
+  path.basename(cwd) === "frontend" ? path.resolve(cwd, "..") : cwd;
+try {
+  loadEnvConfig(envDirectory);
+} catch {
+  // Vercel: no parent .env file — env vars come from the dashboard.
+}
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
