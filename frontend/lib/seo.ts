@@ -19,8 +19,8 @@ export function buildMetadata(args: {
     title,
     description,
     applicationName: SITE_NAME,
-    authors: [{ name: "Talha Abid" }],
-    creator: "Talha Abid",
+    authors: [{ name: "Hasnain Ali Asghar" }],
+    creator: "Hasnain Ali Asghar",
     keywords: [
       "water quality",
       "remote sensing",

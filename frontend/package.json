@@ -4,7 +4,7 @@
   "private": true,
   "description": "AquaLens — autonomous freshwater monitoring agent (frontend)",
   "license": "MIT",
-  "author": "Talha Abid",
+  "author": "Hasnain Ali Asghar",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",

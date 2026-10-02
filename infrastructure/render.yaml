@@ -12,7 +12,7 @@ services:
   - type: web
     name: aqualens-backend
     runtime: docker
-    repo: https://github.com/talhaabidj/aqualens
+    repo: https://github.com/hasnainaliasghar/AquaLinks
     rootDir: backend
     dockerfilePath: ./Dockerfile
     plan: free

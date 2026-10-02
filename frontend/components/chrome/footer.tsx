@@ -17,7 +17,7 @@ const COLUMNS = [
     links: [
       { href: "/about", label: "About" },
       { href: "/limitations", label: "Limitations" },
-      { href: "https://github.com/talhaabidj1/aqualens", label: "GitHub" },
+      { href: "https://github.com/hasnainaliasghar/AquaLinks", label: "GitHub" },
     ],
   },
   {
@@ -42,7 +42,7 @@ export function Footer() {
               risk indicators, not certified water-safety results.
             </p>
             <p className="font-mono text-2xs uppercase tracking-wider text-muted-foreground">
-              © {new Date().getFullYear()} Talha Abid · MIT License
+              © {new Date().getFullYear()} Hasnain Ali Asghar · MIT License
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">

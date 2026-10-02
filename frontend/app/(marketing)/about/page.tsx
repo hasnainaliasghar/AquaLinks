@@ -67,13 +67,13 @@ export default function AboutPage() {
             Author
           </h2>
           <p>
-            Talha Abid —{" "}
+            Hasnain Ali Asghar —{" "}
             <a
               className="text-foreground underline decoration-aqua-500 underline-offset-4"
-              href="https://github.com/talhaabidj1"
+              href="https://github.com/hasnainaliasghar"
               rel="noreferrer"
             >
-              github.com/talhaabidj1
+              github.com/hasnainaliasghar
             </a>
             .
           </p>
