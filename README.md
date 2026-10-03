@@ -399,5 +399,3 @@ For step-by-step instructions, read [`DEPLOY.md`](DEPLOY.md).
 ## License and attribution
 
 Source code and documentation are licensed under [MIT](LICENSE). Copyright (c) 2026 Hasnain Ali Asghar.
-
-Sentinel-2 imagery © European Union, contains modified Copernicus Sentinel data accessed via the Microsoft Planetary Computer. Map tiles come from CARTO and Esri. Place search uses OpenStreetMap Nominatim.
